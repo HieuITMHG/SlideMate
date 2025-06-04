@@ -203,11 +203,34 @@ const getMe = async (req, res) => {
   }
 };
 
+const logOut = async (req, res) => {
+  try {
+    res.clearCookie('accessToken', {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: process.env.NODE_ENV === 'production' ? 'None' : 'Lax'
+    });
+
+    res.clearCookie('refreshToken', {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: process.env.NODE_ENV === 'production' ? 'None' : 'Lax'
+    });
+
+    res.status(200).json({ message: 'Đăng xuất thành công' });
+  } catch (error) {
+    console.error('Logout error:', error);
+    res.status(500).json({ message: 'Lỗi đăng xuất' });
+  }
+};
+
+
 module.exports = { 
   registerUser, 
   loginUser, 
   googleLogin, 
   googleRedirect,
   refreshTokenHandler, 
-  getMe 
+  getMe,
+  logOut
 };

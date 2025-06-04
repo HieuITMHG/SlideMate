@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { Navigate } from 'react-router-dom';
-import publicApi from '../utils/publicapi';
+import api from '../utils/api';
 import { useDispatch } from 'react-redux';
 import { setUserInfo, clearUserInfo } from '../store/slices/userSlice';
 
@@ -12,7 +12,7 @@ const ProtectedRoute = ({ children }) => {
   useEffect(() => {
     const checkAuth = async () => {
       try {
-        const res = await publicApi.get('/api/users/me', { withCredentials: true });
+        const res = await api.get('/api/users/me');
         console.log('Me response:', res.data);
         dispatch(setUserInfo(res.data.user));
         setIsAuthenticated(true);

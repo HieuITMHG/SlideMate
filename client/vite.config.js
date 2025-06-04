@@ -9,7 +9,7 @@ export default defineConfig({
     react()],
   resolve: {
     alias: {
-      '@img': path.resolve(__dirname, './src/assets/imgs'),
+      '@imgs': path.resolve(__dirname, './src/assets/imgs'),
     },
   },
 })

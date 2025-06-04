@@ -1,8 +1,8 @@
 import { Outlet, Link } from 'react-router-dom';
 import { useSelector } from 'react-redux';
 
-import logo from '@img/troll_face.png';
-import { FaSearch, FaUserCircle } from 'react-icons/fa';
+import logo from '@imgs/troll_face.png';
+import { FaSearch } from 'react-icons/fa';
 import { GoUpload } from 'react-icons/go';
 
 import MainDropDown from '../components/MainDropDown';
@@ -11,7 +11,7 @@ function Layout() {
   const user = useSelector((state) => state.user.userInfo);
   return (
     <div className="min-h-screen bg-gray-100">
-      <nav className="bg-black text-white py-4 px-10 w-screen flex sticky justify-between">
+      <nav className="bg-black text-white py-4 px-10 w-screen flex sticky justify-between top-0">
         <Link to={'/'}>
           <div className="flex items-center">
             <div>
@@ -30,7 +30,7 @@ function Layout() {
                 <input
                     type="text"
                     placeholder="Tìm kiếm..."
-                    className="border p-2 rounded-l-full border-r-0 h-12 w-80 text-black"
+                    className="border border-white p-2 rounded-l-full border-r-0 h-12 w-80 text-white"
                 />
                 <div className="border p-2 rounded-r-full h-12 flex items-center">
                     <FaSearch className="text-gray-500" />
@@ -67,7 +67,7 @@ function Layout() {
           )}
         </div>
       </nav>
-      <main className="p-6">
+      <main>
         <Outlet />
       </main>
     </div>

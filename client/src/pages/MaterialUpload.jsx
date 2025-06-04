@@ -21,6 +21,8 @@ const MaterialUpload = () => {
         'application/pdf',
         'application/vnd.ms-powerpoint',
         'application/vnd.openxmlformats-officedocument.presentationml.presentation',
+        'application/msword',
+        'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
       ].includes(selectedFile.type)
     ) {
       setFile(selectedFile);
@@ -110,7 +112,7 @@ const MaterialUpload = () => {
           <input
             id="file"
             type="file"
-            accept=".pdf,.ppt,.pptx"
+            accept=".pdf,.ppt,.pptx,.doc,.docx"
             onChange={handleFileChange}
             required
             className="mt-1 w-full p-2 border border-gray-300 rounded-md file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100"
