@@ -1,8 +1,9 @@
+// MainDropDown.jsx
 import { useDispatch, useSelector } from "react-redux";
-import { clearUserInfo } from '../store/slices/userSlice';
+import { clearUserInfo } from "../store/slices/userSlice";
 import { useState } from "react";
 import defaultAvatar from "@imgs/defaultAvatar.png";
-import api from '../utils/api';
+import api from "../utils/api";
 
 const MainDropDown = () => {
   const user = useSelector((state) => state.user.userInfo);
@@ -15,12 +16,9 @@ const MainDropDown = () => {
 
   const handleLogout = async () => {
     try {
-      await api.post("/api/users/logout"); 
-
+      await api.post("/api/users/logout");
       localStorage.removeItem("accessToken");
-
       dispatch(clearUserInfo());
-
       window.location.href = "/login";
     } catch (error) {
       console.error("Lỗi khi logout:", error);
@@ -28,15 +26,17 @@ const MainDropDown = () => {
   };
 
   return (
-    <>
-      <div className="cursor-pointer" onClick={handleToggleDropDown}>
-        <img src={defaultAvatar} className="h-14 w-14 rounded-full" />
-      </div>
+    <div className="relative cursor-pointer z-[999]" onClick={handleToggleDropDown} > 
+      <img
+        src={user?.avatar || defaultAvatar}
+        alt="User Avatar"
+        className="h-14 w-14 rounded-full object-cover"
+      />
 
       {isOpen && (
         <div
           id="main-drop-down"
-          className="h-96 w-48 bg-black text-white absolute top-20 right-4 rounded shadow-lg z-50"
+          className="w-48 bg-black text-white absolute top-16 right-0 rounded shadow-lg overflow-visible"
         >
           <p className="p-4">Hello, {user?.name || "User"}</p>
           <ul>
@@ -51,7 +51,7 @@ const MainDropDown = () => {
           </ul>
         </div>
       )}
-    </>
+    </div>
   );
 };
 

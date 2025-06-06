@@ -1,24 +1,30 @@
-import { useEffect, useState } from "react";
-import banner from "@imgs/banner.jpg";
+import { useEffect, useState, useRef } from "react";
 import { getMaterialsByCategory } from "../apis/materialApis";
-import axios from "axios";
+import MaterialCard from "../components/MaterialCard";
+import { FaChevronLeft, FaChevronRight } from "react-icons/fa";
+
 const Home = () => {
   const [showFilter, setShowFilter] = useState(true);
   const [lastScrollY, setLastScrollY] = useState(0);
-  const [materialsByCategory, setMaterialsByCategory] = useState({});
-  const lst_category = ["Technology"];
+  const [isLoading, setIsLoading] = useState(true);
+  const [materialsByCategory, setMaterialsByCategory] = useState([]);
+  const lst_category = ["Technology", "Literature", "Biology"];
+  const scrollRefs = useRef([]);
 
   // Fetch materials and thumbnails
   useEffect(() => {
     const fetchMaterials = async () => {
       try {
-        const res = await axios.get("http://localhost:3000/api/materials/category/Technology");
-        console.log("Response from /api/materials/Technology:", res.data);
-
-        // Update materialsByCategory with the response
-        setMaterialsByCategory({
-          Technology: res.data.materials || [], // Use the materials array from the response
-        });
+        const updatedMaterials = [];
+        for (const category of lst_category) {
+          const response = await getMaterialsByCategory(category);
+          updatedMaterials.push({
+            category: response.category || category,
+            materials: response.materials || [],
+          });
+        }
+        setMaterialsByCategory(updatedMaterials);
+        setIsLoading(false);
       } catch (error) {
         console.error("Error fetching materials:", {
           message: error.message,
@@ -35,13 +41,11 @@ const Home = () => {
   useEffect(() => {
     const handleScroll = () => {
       const currentScrollY = window.scrollY;
-
       if (currentScrollY > lastScrollY) {
-        setShowFilter(false); // Scroll down
+        setShowFilter(false);
       } else if (currentScrollY < lastScrollY) {
-        setShowFilter(true); // Scroll up
+        setShowFilter(true);
       }
-
       setLastScrollY(currentScrollY);
     };
 
@@ -49,63 +53,87 @@ const Home = () => {
     return () => window.removeEventListener("scroll", handleScroll);
   }, [lastScrollY]);
 
-  return (
-    <>
-      {/* Filter */}
-      <div
-        className={`transition-all duration-300 sticky top-18 w-full h-16 bg-gray-800 z-50 ${
-          showFilter ? "opacity-100 translate-y-0" : "opacity-0 -translate-y-full"
-        }`}
-      />
+  // Hàm xử lý cuộn trái
+  const scrollLeft = (index) => {
+    const container = scrollRefs.current[index];
+    if (container) {
+      container.scrollBy({ left: -300, behavior: "smooth" });
+    }
+  };
 
-      {/* Banner */}
-      <div
-        className="w-full h-[300px] bg-cover bg-center"
-        style={{ backgroundImage: `url(${banner})` }}
-      />
+  // Hàm xử lý cuộn phải
+  const scrollRight = (index) => {
+    const container = scrollRefs.current[index];
+    if (container) {
+      container.scrollBy({ left: 300, behavior: "smooth" });
+    }
+  };
 
-      {/* Materials by Category */}
-      {lst_category.map((category) => (
-        <div key={category} className="px-4 py-6">
-          <h2 className="text-2xl font-bold mb-4">{category}</h2>
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-            {materialsByCategory[category]?.length > 0 ? (
-              materialsByCategory[category].map((material) => (
-                <div
-                  key={material.id}
-                  className="border rounded-lg overflow-hidden shadow-md hover:shadow-lg transition-shadow"
+  if (isLoading) {
+    return <div>Loading...</div>;
+  } else {
+    return (
+      <div className="min-h-screen bg-gray-100">
+        {/* Filter */}
+        <div
+          className={`transition-all duration-300 sticky top-0 w-full h-16 bg-gray-800 z-50 ${
+            showFilter ? "opacity-100 translate-y-0" : "opacity-0 -translate-y-full"
+          }`}
+        />
+
+        {/* Materials by Category */}
+        {materialsByCategory.length > 0 ? (
+          materialsByCategory.map(({ category, materials }, catIndex) => (
+            <div key={category} className="px-4 py-6">
+              <h2 className="text-2xl font-bold text-gray-800 mb-4">{category}</h2>
+              <div className="relative flex items-center">
+                {/* Nút cuộn trái */}
+                <button
+                  onClick={() => scrollLeft(catIndex)}
+                  className="absolute left-0 z-10 p-2 bg-gray-200 rounded-full hover:bg-gray-300"
+                  aria-label="Scroll left"
                 >
-                  {/* Thumbnail */}
-                  <div className="w-full h-48 bg-gray-200 flex items-center justify-center">
-                      {material.thumbnailUrl ? (
-                      <img
-                        src={material.thumbnailUrl}
-                        alt={material.title}
-                        className="w-full h-full object-cover"
-                      />
+                  <FaChevronLeft />
+                </button>
+
+                {/* Container cuộn ngang */}
+                <div
+                  ref={(el) => (scrollRefs.current[catIndex] = el)}
+                  className="overflow-x-auto scrollbar-hide flex-1"
+                  style={{ scrollBehavior: "smooth" }}
+                >
+                  <div className="flex flex-shrink-0 gap-9">
+                    {materials.length > 0 ? (
+                      materials.map((material, index) => (
+                        <div
+                          key={material.id || `material-${index}`}
+                        >
+                          <MaterialCard material={material} />
+                        </div>
+                      ))
                     ) : (
-                      <span className="text-gray-500">No Thumbnail</span>
+                      <p className="text-gray-500 w-full">No materials found for {category}</p>
                     )}
                   </div>
-                  {/* Title and View Count */}
-                  <div className="p-4">
-                    <h3 className="text-lg font-semibold truncate">
-                      {material.title}
-                    </h3>
-                    <p className="text-sm text-gray-600">
-                      Views: {material.total_view || 0}
-                    </p>
-                  </div>
                 </div>
-              ))
-            ) : (
-              <p className="text-gray-500">No materials found for {category}</p>
-            )}
-          </div>
-        </div>
-      ))}
-    </>
-  );
+
+                {/* Nút cuộn phải */}
+                <button
+                  onClick={() => scrollRight(catIndex)}
+                  className="absolute right-0 z-10 p-2 bg-gray-200 rounded-full hover:bg-gray-300"
+                  aria-label="Scroll right"
+                >
+                  <FaChevronRight />
+                </button>
+              </div>
+            </div>
+          ))
+        ) : (
+          <p className="text-center text-gray-500">No categories loaded.</p>
+        )}
+      </div>
+    );
+  }
 };
 
 export default Home;

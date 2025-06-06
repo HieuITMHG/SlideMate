@@ -1,8 +1,8 @@
-import api from '../utils/api';
+import publicApi from "../utils/publicapi";
 
 const getMaterialsByCategory = async (categoryName) => {
     try {
-        const response = await api.get(`/api/materials/${categoryName}`);
+        const response = await publicApi.get(`/api/materials/category/${categoryName}`);
         return response.data;
     } catch (error) {
         console.error('Error fetching materials by category:', error);

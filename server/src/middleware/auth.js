@@ -9,7 +9,7 @@ const auth = async (req, res, next) => {
     } else {
       token = req.cookies.accessToken;
     }
-
+    console.log(token);
     if (!token) {
       return res.status(401).json({ message: 'No token provided' });
     }

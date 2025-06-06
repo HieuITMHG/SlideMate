@@ -9,7 +9,7 @@ const Register = lazy(() => import('./pages/Register'));
 const Login = lazy(() => import('./pages/Login'));
 const Profile = lazy(() => import('./pages/Profile'));
 const MaterialUpload = lazy(() => import('./pages/MaterialUpload'));
-const MaterialPreview = lazy(() => import('./pages/MaterialPreview'));
+const MaterialDetail = lazy(() => import('./pages/MaterialDetail'));
 const ProtectedRoute = lazy(() => import('./components/ProtectedRoute'));
 
 function App() {
@@ -29,7 +29,7 @@ function App() {
             }
           />
         </Route>
-        <Route path="/view" element={<MaterialPreview />} />
+        <Route path="/material/:id" element={<MaterialDetail />} />
         <Route
           path="/upload"
           element={
