@@ -1,7 +1,7 @@
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 const { OAuth2Client } = require("google-auth-library");
-const User = require("../models/user");
+const User = require("../models/User");
 const Account = require("../models/Account");
 const Role = require("../models/Role");
 
@@ -108,8 +108,6 @@ const googleLogin = async (req, res) => {
     }
 
     const { accessToken, refreshToken } = generateTokens(account._id);
-    console.log('access_token: '+ accessToken);
-    console.log('refresh_token: ' + refreshToken);
     setTokensCookie(res, accessToken, refreshToken);
 
     res.status(200).json({
@@ -125,7 +123,6 @@ const googleLogin = async (req, res) => {
 // Làm mới token
 const refreshTokenHandler = async (req, res) => {
   const refreshToken = req.cookies.refreshToken;
-  console.log(refreshToken);
   if (!refreshToken) {
     return res.status(401).json({ message: "No refresh token provided" });
   }

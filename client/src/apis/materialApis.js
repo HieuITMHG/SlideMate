@@ -1,4 +1,4 @@
-import publicApi from "../utils/publicapi";
+import publicApi from "../utils/publicApi.js";
 
 const getMaterialsByCategory = async (categoryName) => {
     try {

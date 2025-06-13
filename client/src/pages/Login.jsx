@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useDispatch } from 'react-redux';
 import { GoogleLogin, GoogleOAuthProvider } from '@react-oauth/google';
-import publicApi from '../utils/publicapi';
+import publicApi from '../utils/publicApi.js';
 import { setUserInfo } from '../store/slices/userSlice';
 import { useNavigate, useLocation } from 'react-router-dom';
 

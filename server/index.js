@@ -13,19 +13,36 @@ dotenv.config();
 
 const app = express();
 
+const allowedOrigins = [
+  "http://localhost",
+  "http://localhost:5173",
+  "http://127.0.0.1:3000", 
+];
+
 app.use(
   "/materials",
   cors({
-    origin: "http://localhost:5173",
+    origin: function (origin, callback) {
+      if (!origin || allowedOrigins.includes(origin)) {
+        callback(null, true);
+      } else {
+        callback(new Error("Not allowed by CORS"));
+      }
+    },
     credentials: true,
   }),
   express.static(path.join(__dirname, "public/materials"))
 );
 
-
 app.use(
   cors({
-    origin: "http://localhost:5173",
+    origin: function (origin, callback) {
+      if (!origin || allowedOrigins.includes(origin)) {
+        callback(null, true);
+      } else {
+        callback(new Error("Not allowed by CORS"));
+      }
+    },
     credentials: true,
     methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
     allowedHeaders: ["Content-Type", "Authorization"],
