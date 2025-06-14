@@ -36,6 +36,7 @@ WORKDIR /app
 # Sao chép package.json và package-lock.json để cài đặt phụ thuộc
 # Chỉ cài đặt những gì cần thiết cho môi trường dev
 COPY package*.json ./
+RUN npm install -g nodemon && npm install
 
 # Cài đặt canvas và các phụ thuộc khác
 # Sử dụng --build-from-source để đảm bảo tương thích
