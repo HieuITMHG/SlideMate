@@ -13,7 +13,7 @@ const MaterialCard = ({ material }) => {
     setIsSaved(!isSaved); // Optimistic update for instant icon color change
 
     try {
-      const response = await toggleSaveMaterial(material._id);
+      const response = await toggleSaveMaterial(material.id);
       setIsSaved(response.saved); // Confirm state from API
       toast.success(response.message, {
         position: "top-right",

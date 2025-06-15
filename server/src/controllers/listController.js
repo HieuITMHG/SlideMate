@@ -38,10 +38,11 @@ const toggleSaveMaterial = async (req, res) => {
       });
     } else {
       // If not exists, add it (save)
-      await ListMaterial.create({
+      console.log(material_id);
+      await new ListMaterial({
         material_id: material_id,
         list_id: userList._id
-      });
+      }).save();
       return res.status(200).json({
         message: 'Đã thêm tài liệu vào danh sách xem sau',
         saved: true
