@@ -6,8 +6,10 @@ import Loader from './components/Loader';
 const Layout = lazy(() => import('./pages/Layout'));
 const Home = lazy(() => import('./pages/Home'));
 const Register = lazy(() => import('./pages/Register'));
+const VerifyEmailPage = lazy(() => import('./pages/VerifyMailPage'));
 const Login = lazy(() => import('./pages/Login'));
 const Profile = lazy(() => import('./pages/Profile'));
+const VerifiedSuccess = lazy(() => import('./pages/VerifiedSuccess'));
 const MaterialUpload = lazy(() => import('./pages/MaterialUpload'));
 const MaterialDetail = lazy(() => import('./pages/MaterialDetail'));
 const ProtectedRoute = lazy(() => import('./components/ProtectedRoute'));
@@ -19,6 +21,8 @@ function App() {
       <Routes>
         <Route path="/register" element={<Register />} />
         <Route path="/login" element={<Login />} />
+        <Route path="/verify-email" element={<VerifyEmailPage />} />
+        <Route path="/success-verify-email" element={<VerifiedSuccess />} />
         <Route element={<Layout />}>
           <Route index element={<Home />} />
           <Route

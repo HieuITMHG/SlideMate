@@ -16,14 +16,24 @@ function Register() {
   const handleRegister = async (e) => {
     e.preventDefault();
     try {
-      const response = await publicApi.post('/api/users/register', { email, password, username });
-      localStorage.setItem('accessToken', response.data.accessToken);
-      dispatch(setUserInfo({ email, username }));
-      navigate('/profile');
+      const response = await publicApi.post('/api/users/register', {
+        email,
+        password,
+        username
+      });
+
+      if (response.status === 201) {
+        localStorage.setItem('accessToken', response.data.accessToken);
+        dispatch(setUserInfo({ email, username }));
+        navigate('/verify-email'); 
+      } else {
+        setError('Đăng ký không thành công. Vui lòng thử lại.');
+      }
     } catch (err) {
-      setError(err.response?.data.message || 'Lỗi đăng ký');
+      setError(err.response?.data?.message || 'Lỗi đăng ký');
     }
   };
+
 
   const handleGoogleSuccess = async (credentialResponse) => {
     try {
