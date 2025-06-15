@@ -1,4 +1,11 @@
 import { NavLink } from 'react-router-dom'
+import { useDispatch, useSelector } from "react-redux";
+import { useState } from 'react';
+
+
+import { clearUserInfo } from "../../store/slices/userSlice";
+import api from '../../utils/api'
+import { useNavigate } from "react-router-dom";
 
 const SideBarItem = ({ to, name }) => {
   return (
@@ -7,7 +14,7 @@ const SideBarItem = ({ to, name }) => {
       className={({ isActive }) =>
         `block px-4 py-2 rounded-md ${isActive
           ? 'bg-sky-600 text-white'
-          : 'hover:bg-gray-700'}`}
+          : 'hover:bg-gray-100 hover:text-black'}`}
       end
     >
       {name}
@@ -15,21 +22,55 @@ const SideBarItem = ({ to, name }) => {
   )
 }
 
-const AdminSidebar = () => {
+const LogoutButton = () => {
+  const dispatch = useDispatch();
+  const navigate = useNavigate();
+  const handleLogout = async () => {
+    try {
+      await api.post("/api/users/logout");
+      localStorage.removeItem("accessToken");
+      dispatch(clearUserInfo());
+      navigate("/");
+    } catch (error) {
+      console.error("Lỗi khi logout:", error);
+    }
+  };
   return (
-    <div className="bg-gray-800 text-white w-64 min-h-screen p-4">
-      <h2 className="text-xl font-bold mb-6">Quản Trị Viên</h2>
-      <nav>
-        <ul className="space-y-2">
+    <button
+      className=' w-full  px-4 py-2 rounded-md text-left text-red-500  hover:bg-red-500 hover:text-white hover:font-bold'
+      onClick={handleLogout}
+    >
+      Đăng xuất
+    </button>
 
-          <li><SideBarItem to="/admin" name="Trang chủ" /></li>
-          <li><SideBarItem to="/admin/reports" name="Tố cáo từ người dùng" /></li>
-          <li><SideBarItem to="/admin/users" name="Quản lý người dùng" /></li>
-          <li><SideBarItem to="/admin/categories" name="Quản lý danh mục" /></li>
-          <li><SideBarItem to="/admin/statistics" name="Thống kê dữ liệu" /></li>
+  );
+}
 
-        </ul>
-      </nav>
+const AdminSidebar = () => {
+  const [hidden, setHidden] = useState(false);
+  return (
+    <div className={`bg-gray-700 text-white ${hidden ? 'w-15 px-0 py-4' : 'w-64 p-4'} h-screen flex flex-col`}>
+      <div className='text-2xl block w-full text-center px-4 py-2 rounded-md flex items-center gap-2'>
+        <button 
+        className='  hover:bg-gray-100 hover:text-black p-1 rounded-md'
+        onClick={() => { setHidden(!hidden) }}
+      >
+        ☰
+      </button>
+      {!hidden &&<div className='font-bold'>Menu</div>}
+      </div>
+      {!hidden && 
+          <ul className="space-y-2">
+            <li><SideBarItem to="/admin" name="Trang chủ" /></li>
+            <li><SideBarItem to="/admin/reports" name="Tố cáo từ người dùng" /></li>
+            <li><SideBarItem to="/admin/users" name="Quản lý người dùng" /></li>
+            <li><SideBarItem to="/admin/categories" name="Quản lý danh mục" /></li>
+            <li><SideBarItem to="/admin/statistics" name="Thống kê dữ liệu" /></li>
+            <li><hr></hr></li>
+            <li><LogoutButton /></li>
+            <li><hr></hr></li>
+          </ul> 
+      }
     </div>
   )
 }
