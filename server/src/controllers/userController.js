@@ -10,6 +10,8 @@ const {generateTokens, setTokensCookie} = require("../utils/auth");
 const User = require("../models/User");
 const Account = require("../models/Account");
 const Role = require("../models/Role");
+const List = require("../models/List");
+const List = require("../models/List");
 
 
 const googleClient = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
@@ -59,6 +61,19 @@ const registerUser = async (req, res) => {
 
     // Create associated User document
     await new User({ account: account._id }).save();
+    const listSchema = new mongoose.Schema({
+      list_name: {type:String, require: true, trim: true},
+      description: String,
+      user_id: { type: mongoose.Schema.Types.ObjectId, ref: 'User', require: true }
+    }, {
+      timestamps: true
+    });
+    module.exports = mongoose.model('List', listSchema);
+
+    // const List = await new List({
+    //   list_name: "Later",
+    //   description:
+    // })
 
     // Send verification email
     await sendVerificationEmail(email, username, otp);
