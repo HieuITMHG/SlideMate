@@ -1,6 +1,7 @@
 import { useEffect, useState, useRef } from "react";
 import { getMaterialsByCategory } from "../apis/materialApis";
 import MaterialCard from "../components/MaterialCard";
+import Footer from "../components/Footer";
 import { FaChevronLeft, FaChevronRight } from "react-icons/fa";
 
 const Home = () => {
@@ -132,6 +133,7 @@ const Home = () => {
         ) : (
           <p className="text-center text-gray-500">No categories loaded.</p>
         )}
+        <Footer />
       </div>
     );
   }

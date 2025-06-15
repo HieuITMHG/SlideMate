@@ -141,8 +141,9 @@ const uploadMaterial = [
         thumbnail_path: thumbnailUrl,
         total_page: totalPages,
         total_view: 0,
+        total_likes: 0,
         visibility,
-        category_name: category.category_name,
+        category_id: category._id,
         file_type_id: fileType._id,
       }).save();
 
@@ -212,7 +213,7 @@ const getMaterialsByCategory = async (req, res) => {
       return res.status(404).json({ message: "Category not found" });
     }
 
-    const materials = await Material.find({ category_name: categoryName }).populate({
+    const materials = await Material.find({ category_id: category._id }).populate({
       path: "user_id",
       populate: {
         path: "account",

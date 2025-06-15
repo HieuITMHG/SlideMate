@@ -6,20 +6,16 @@ import Loader from './components/Loader';
 const Layout = lazy(() => import('./pages/Layout'));
 const Home = lazy(() => import('./pages/Home'));
 const Register = lazy(() => import('./pages/Register'));
+const VerifyEmailPage = lazy(() => import('./pages/VerifyMailPage'));
 const Login = lazy(() => import('./pages/Login'));
 const Profile = lazy(() => import('./pages/Profile'));
+const VerifiedSuccess = lazy(() => import('./pages/VerifiedSuccess'));
 const MaterialUpload = lazy(() => import('./pages/MaterialUpload'));
 const MaterialDetail = lazy(() => import('./pages/MaterialDetail'));
 const ProtectedRoute = lazy(() => import('./components/ProtectedRoute'));
-
-// Admin Pages
-const AdminLayout = lazy(() => import ('./pages/admin/AdminLayout'))
-const AdminDashboard = lazy(() => import('./pages/admin/AdminDashboard'));
-const AdminReportsManagementPage = lazy(() => import ('./pages/admin/AdminReportsManagementPage'));
-const AdminUsersManagementPage = lazy(() => import ('./pages/admin/AdminUsersManagementPage'));
-const AdminCategoriesManagementPage = lazy(() => import ('./pages/admin/AdminCategoriesManagementPage'));
-const AdminStatisticsPage = lazy(() => import ('./pages/admin/AdminStatisticsPage'));
-
+const AdminDashboard = lazy(() => import('./pages/AdminDashboard'));
+const ForgotPassword = lazy(() => import('./pages/ForgotPassword'));
+const ResetPassword = lazy(() => import('./pages/ResetPassword'));
 
 function App() {
   return (
@@ -27,6 +23,11 @@ function App() {
       <Routes>
         <Route path="/register" element={<Register />} />
         <Route path="/login" element={<Login />} />
+        <Route path="/verify-email" element={<VerifyEmailPage />} />
+        <Route path="/success-verify-email" element={<VerifiedSuccess />} />
+        <Route path="/forgot-password" element={<ForgotPassword />} />
+        <Route path="/reset-password" element={<ResetPassword />} />
+
         <Route element={<Layout />}>
           <Route index element={<Home />} />
           <Route
@@ -37,26 +38,26 @@ function App() {
               </ProtectedRoute>
             }
           />
-        </Route>
-        <Route path="/material/:id" element={<MaterialDetail />} />
-        <Route
+          <Route
           path="/upload"
           element={
             <ProtectedRoute>
               <MaterialUpload />
             </ProtectedRoute>
           }
-        />
-
-        {/* Admin pages */}
-        <Route path = "/admin" element = {<AdminLayout/>}>
-          <Route index element = {<AdminDashboard/>}/>
-          <Route path ="reports" element = {<AdminReportsManagementPage/>}/>
-          <Route path = "users" element = {<AdminUsersManagementPage/>}/>
-          <Route path = "categories" element = {<AdminCategoriesManagementPage/>}/>
-          <Route path = "statistics" element = {<AdminStatisticsPage/>}/>
+          />
+          <Route path="/material/:id" element={<MaterialDetail />} />
         </Route>
-
+        
+        
+        <Route
+          path="/admin"
+          element={
+            <ProtectedRoute>
+              <AdminDashboard />
+            </ProtectedRoute>
+          }
+        />
       </Routes>
     </Suspense>
   );
