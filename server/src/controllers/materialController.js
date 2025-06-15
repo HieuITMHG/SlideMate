@@ -11,6 +11,8 @@ const Material = require("../models/Material");
 const Category = require("../models/Category");
 const FileType = require("../models/FileType");
 const User = require("../models/User");
+const List = require("../models/List");
+const ListMaterial = require("../models/ListMaterial");
 
 const storage = multer.memoryStorage();
 const upload = multer({
@@ -202,17 +204,17 @@ const getMaterial = async (req, res) => {
   }
 };
 
-
-// Get materials by category
 const getMaterialsByCategory = async (req, res) => {
   try {
     const { categoryName } = req.params;
 
+    // Find the category
     const category = await Category.findOne({ category_name: categoryName });
     if (!category) {
       return res.status(404).json({ message: "Category not found" });
     }
 
+    // Fetch materials for the category
     const materials = await Material.find({ category_id: category._id }).populate({
       path: "user_id",
       populate: {
@@ -222,7 +224,8 @@ const getMaterialsByCategory = async (req, res) => {
       },
     });
 
-    const formattedMaterials = materials.map((material) => ({
+    // Initialize formatted materials with isSaved: false
+    let formattedMaterials = materials.map((material) => ({
       id: material._id,
       title: material.title,
       description: material.description,
@@ -233,7 +236,7 @@ const getMaterialsByCategory = async (req, res) => {
       total_views: material.total_views,
       total_likes: material.total_likes,
       visibility: material.visibility,
-      category_name: material.category_name,
+      category_name: category.category_name, // Fixed: Use category.category_name
       created_at: material.createdAt,
       updated_at: material.updatedAt,
       user: {
@@ -242,7 +245,48 @@ const getMaterialsByCategory = async (req, res) => {
         username: material.user_id?.account?.username,
       },
       file_type: material.file_type_id,
+      is_saved: false, // Default for unauthenticated/no user
     }));
+
+    // Check save status for authenticated users
+    if (req.user?.id) {
+      const accountId = new mongoose.Types.ObjectId(req.user.id);
+      const user = await User.findOne({ account: accountId });
+      if (user) {
+        const laterList = await List.findOne({ user_id: user._id });
+        let savedMaterialIds = [];
+
+        if (laterList) {
+          const savedMaterials = await ListMaterial.find({ list_id: laterList._id }).select('material_id');
+          savedMaterialIds = savedMaterials.map(lm => lm.material_id.toString());
+        }
+
+        // Update isSaved for authenticated user
+        formattedMaterials = materials.map((material) => ({
+          id: material._id,
+          title: material.title,
+          description: material.description,
+          original_file_path: material.pdf_version_path,
+          pdf_version_path: material.pdf_version_path,
+          thumbnail_path: material.thumbnail_path,
+          total_pages: material.total_pages,
+          total_views: material.total_views,
+          total_likes: material.total_likes,
+          visibility: material.visibility,
+          category_name: category.category_name,
+          created_at: material.createdAt,
+          updated_at: material.updatedAt,
+          user: {
+            userId: material.user_id?._id,
+            accountId: material.user_id?.account?._id,
+            username: material.user_id?.account?.username,
+          },
+          file_type: material.file_type_id,
+          is_saved: savedMaterialIds.includes(material._id.toString()),
+        }));
+      }
+    }
+
     res.json({ category: categoryName, materials: formattedMaterials });
   } catch (error) {
     console.error("Error fetching materials by category:", error.stack);
@@ -252,5 +296,7 @@ const getMaterialsByCategory = async (req, res) => {
     });
   }
 };
+
+module.exports = { getMaterialsByCategory };
 
 module.exports = { uploadMaterial, getMaterial, getMaterialsByCategory };

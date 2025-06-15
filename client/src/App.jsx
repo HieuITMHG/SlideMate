@@ -1,6 +1,7 @@
 import { Routes, Route } from 'react-router-dom';
 import { Suspense, lazy } from 'react';
 import Loader from './components/Loader';
+import { ToastContainer } from "react-toastify";
 
 // Lazy load pages and components
 const Layout = lazy(() => import('./pages/Layout'));
@@ -27,6 +28,18 @@ const AdminStatisticsPage = lazy(() => import ('./pages/admin/AdminStatisticsPag
 function App() {
   return (
     <Suspense fallback={<Loader />}>
+      <ToastContainer
+        position="top-right"
+        autoClose={3000}
+        hideProgressBar={false}
+        newestOnTop={false}
+        closeOnClick
+        rtl={false}
+        pauseOnFocusLoss
+        draggable
+        pauseOnHover
+        theme="light"
+      />
       <Routes>
         <Route path="/register" element={<Register />} />
         <Route path="/login" element={<Login />} />
