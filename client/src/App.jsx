@@ -38,16 +38,18 @@ function App() {
               </ProtectedRoute>
             }
           />
-        </Route>
-        <Route path="/material/:id" element={<MaterialDetail />} />
-        <Route
+          <Route
           path="/upload"
           element={
             <ProtectedRoute>
               <MaterialUpload />
             </ProtectedRoute>
           }
-        />
+          />
+          <Route path="/material/:id" element={<MaterialDetail />} />
+        </Route>
+        
+        
         <Route
           path="/admin"
           element={
