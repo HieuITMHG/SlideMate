@@ -10,7 +10,7 @@ const accountSchema = new mongoose.Schema({
     required: true
   },
   otp: {type: String, default: null},
-  otp_expired_time: Date,
+  otp_expire_time: Date,
   is_active: {type: Boolean, default: false}
 },
 {timestamps: true});
