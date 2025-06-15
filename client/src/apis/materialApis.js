@@ -1,4 +1,5 @@
 import publicApi from "../utils/publicApi.js";
+import api from "../utils/api.js";
 
 const getMaterialsByCategory = async (categoryName) => {
     try {
@@ -10,4 +11,14 @@ const getMaterialsByCategory = async (categoryName) => {
     }
 };
 
-export { getMaterialsByCategory };
+const toggleSaveMaterial = async (materialId) => {
+  try {
+    const res = await api.post("/api/lists/toggle-save", { material_id: materialId });
+    return res.data;
+  } catch (error) {
+    console.error("Error toggling save material:", error);
+    throw error;
+  }
+};
+
+export { getMaterialsByCategory, toggleSaveMaterial };
