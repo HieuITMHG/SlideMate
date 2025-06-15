@@ -12,6 +12,17 @@ const MainDropDown = () => {
   const handleToggleDropDown = () => {
     setIsOpen((prev) => !prev);
   };
+  
+  const saveMet =async () =>{
+    console.log("hehe")
+    window.location.href = "/save";
+  }
+
+   const Profile =async () =>{
+    console.log("hehepp")
+    window.location.href = "/profile";
+  }
+
 
   const handleLogout = async () => {
     try {
@@ -39,7 +50,12 @@ const MainDropDown = () => {
         >
           <p className="p-4">Hello, {user?.name || "User"}</p>
           <ul>
-            <li className="p-2 hover:bg-gray-700 cursor-pointer">Profile</li>
+            <li className="p-2 hover:bg-gray-700 cursor-pointer"
+            onClick={Profile}
+            > Profile</li>
+            <li className="p-2 hover:bg-gray-700 cursor-pointer"
+            onClick={saveMet}
+            > Save </li>
             <li className="p-2 hover:bg-gray-700 cursor-pointer">Settings</li>
             <li
               className="p-2 hover:bg-gray-700 cursor-pointer"

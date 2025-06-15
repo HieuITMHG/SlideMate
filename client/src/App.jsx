@@ -4,6 +4,7 @@ import Loader from './components/Loader';
 
 // Lazy load pages and components
 const Layout = lazy(() => import('./pages/Layout'));
+const Save = lazy(() => import('./pages/Save'));
 const Home = lazy(() => import('./pages/Home'));
 const Register = lazy(() => import('./pages/Register'));
 const Login = lazy(() => import('./pages/Login'));
@@ -20,6 +21,7 @@ function App() {
         <Route path="/register" element={<Register />} />
         <Route path="/login" element={<Login />} />
         <Route element={<Layout />}>
+          <Route path="/save" index element={ <Save/>} />
           <Route index element={<Home />} />
           <Route
             path="/profile"
