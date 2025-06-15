@@ -71,6 +71,7 @@ function Login() {
             required
           />
         </div>
+
         <button type="submit" className="bg-blue-500 text-white px-4 py-2 rounded w-full mb-4">
           Đăng Nhập
         </button>
@@ -81,8 +82,13 @@ function Login() {
             text="signin_with"
           />
         </GoogleOAuthProvider>
-          <div className='p-2 text-gray-600'>
-            New to SlideMate? <Link to={'/register'} className='underline text-blue-500 hover:text-blue-700 font-semibold'>Sign Up</Link>
+          <div className='p-2 text-gray-600 flex justify-between'>
+            <span>
+              Bạn chưa có tài khoản? <Link to={'/register'} className='underline text-blue-500 hover:text-blue-700 font-semibold'>Đăng ký</Link>
+            </span>
+            <span>
+              <Link to={'/forgot-password'} className='underline text-blue-500 hover:text-blue-700 font-semibold'>Quên mật khẩu</Link>
+            </span>
           </div>
       </form>
     </div>

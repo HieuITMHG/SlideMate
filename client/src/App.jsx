@@ -14,6 +14,8 @@ const MaterialUpload = lazy(() => import('./pages/MaterialUpload'));
 const MaterialDetail = lazy(() => import('./pages/MaterialDetail'));
 const ProtectedRoute = lazy(() => import('./components/ProtectedRoute'));
 const AdminDashboard = lazy(() => import('./pages/AdminDashboard'));
+const ForgotPassword = lazy(() => import('./pages/ForgotPassword'));
+const ResetPassword = lazy(() => import('./pages/ResetPassword'));
 
 function App() {
   return (
@@ -23,6 +25,9 @@ function App() {
         <Route path="/login" element={<Login />} />
         <Route path="/verify-email" element={<VerifyEmailPage />} />
         <Route path="/success-verify-email" element={<VerifiedSuccess />} />
+        <Route path="/forgot-password" element={<ForgotPassword />} />
+        <Route path="/reset-password" element={<ResetPassword />} />
+
         <Route element={<Layout />}>
           <Route index element={<Home />} />
           <Route

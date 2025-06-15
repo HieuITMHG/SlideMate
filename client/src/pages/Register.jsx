@@ -3,7 +3,7 @@ import { useDispatch } from 'react-redux';
 import { GoogleLogin, GoogleOAuthProvider } from '@react-oauth/google';
 import publicApi from '../utils/publicApi.js';
 import { setUserInfo } from '../store/slices/userSlice';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 
 function Register() {
   const [email, setEmail] = useState('');
@@ -96,6 +96,9 @@ function Register() {
             text="signup_with"
           />
         </GoogleOAuthProvider>
+         <div className='p-2 text-gray-600'>
+            Bạn đã có tài khoản? <Link to={'/login'} className='underline text-blue-500 hover:text-blue-700 font-semibold'>Đăng nhập</Link>
+          </div>
       </form>
     </div>
   );

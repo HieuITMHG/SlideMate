@@ -35,27 +35,28 @@ const sendVerificationEmail = async (email, username, otp) => {
   }
 };
 
-const sendPasswordResetEmail = async (email, username, resetToken) => {
+const sendPasswordResetEmail = async (email, username, otp) => {
   try {
-    const resetUrl = `${process.env.FRONTEND_URL}/reset-password?token=${resetToken}`;
     const mailOptions = {
       from: process.env.EMAIL_USER,
       to: email,
-      subject: "Đặt lại mật khẩu SlideMate",
+      subject: "Mã xác thực đặt lại mật khẩu - SlideMate",
       html: `
         <h3>Xin chào, ${username}</h3>
-        <p>Vui lòng nhấp vào liên kết dưới đây để đặt lại mật khẩu của bạn:</p>
-        <a href="${resetUrl}" style="padding: 10px 20px; background-color: #00809D; color: white; text-decoration: none; border-radius: 5px;">Đặt lại mật khẩu</a>
+        <p>Chúng tôi đã nhận được yêu cầu đặt lại mật khẩu cho tài khoản của bạn.</p>
+        <p>Mã xác thực của bạn là:</p>
+        <div style="font-size: 24px; font-weight: bold; margin: 10px 0;">${otp}</div>
+        <p>Mã này sẽ hết hạn sau 5 phút.</p>
         <p>Nếu bạn không yêu cầu đặt lại mật khẩu, vui lòng bỏ qua email này.</p>
-        <p>SlideMate Team</p>
+        <p>Trân trọng,<br>SlideMate Team</p>
       `,
     };
 
     await transporter.sendMail(mailOptions);
-    console.log(`Password reset email sent to ${email}`);
+    console.log(`OTP reset code sent to ${email}`);
   } catch (error) {
     console.error("Error sending password reset email:", error.stack);
-    throw new Error("Không thể gửi email đặt lại mật khẩu");
+    throw new Error("Không thể gửi mã xác thực qua email");
   }
 };
 

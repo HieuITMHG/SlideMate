@@ -4,8 +4,8 @@ const bcrypt = require("bcrypt");
 const crypto = require("crypto");
 
 const {validate_password} = require('../utils/user')
-const { sendVerificationEmail } = require("../utils/email"); // Import email util
-const {generateTokens, setTokensCookie} = require("../utils/auth")
+const { sendVerificationEmail, sendPasswordResetEmail } = require("../utils/email"); // Import email util
+const {generateTokens, setTokensCookie} = require("../utils/auth");
 
 const User = require("../models/User");
 const Account = require("../models/Account");
@@ -239,6 +239,69 @@ const verifyEmail = async (req, res) => {
   }
 };
 
+const sendResetCode = async (req, res) => {
+  const { email } = req.body;
+
+  try {
+    const user = await Account.findOne({ email });
+    if (!user) return res.status(404).json({ message: 'Email không tồn tại' });
+
+    const otp = crypto.randomInt(100000, 999999).toString(); // 6-digit code
+    const otpExpire = new Date(Date.now() + 5 * 60 * 1000); // 5 phút
+
+    user.otp = otp;
+    user.otp_expire_time = otpExpire;
+    await user.save();
+
+    await sendPasswordResetEmail(email, user.username, otp);
+    res.json({ message: 'Mã xác thực đã được gửi đến email' });
+
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: 'Gửi mã thất bại' });
+  }
+};
+
+const verifyResetCode = async (req, res) => {
+  const { email, otp } = req.body;
+
+  try {
+    const user = await Account.findOne({ email });
+    console.log(otp);
+    console.log(user.otp_expire_time < new Date());
+    if (!user || user.otp !== otp || user.otp_expire_time < new Date()) {
+      return res.status(400).json({ message: 'Mã không hợp lệ hoặc đã hết hạn' });
+    }
+
+    res.json({ message: 'Mã hợp lệ' }); // Có thể gửi token nếu cần
+  } catch (error) {
+    res.status(500).json({ message: 'Xác minh mã thất bại' });
+  }
+};
+
+const resetPassword = async (req, res) => {
+  const { email, otp, newPassword } = req.body;
+
+  try {
+    const user = await Account.findOne({ email });
+
+    if (!user || user.otp !== otp || user.otp_expire_time < new Date()) {
+      return res.status(400).json({ message: 'Mã không hợp lệ hoặc đã hết hạn' });
+    }
+
+    const hashedPassword = await bcrypt.hash(newPassword, 10);
+    user.password = hashedPassword;
+    user.otp = null;
+    user.otp_expire_time = null;
+    user.is_active = true;
+    await user.save();
+
+    res.json({ message: 'Đặt lại mật khẩu thành công' });
+  } catch (error) {
+    res.status(500).json({ message: 'Đặt lại mật khẩu thất bại' });
+  }
+};
+
 module.exports = {
   registerUser,
   loginUser,
@@ -246,5 +309,8 @@ module.exports = {
   refreshTokenHandler,
   getMe,
   logOut,
-  verifyEmail
+  verifyEmail,
+  sendResetCode,
+  verifyResetCode,
+  resetPassword,
 };
