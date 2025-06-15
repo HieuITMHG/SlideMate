@@ -10,7 +10,8 @@ const {generateTokens, setTokensCookie} = require("../utils/auth");
 const User = require("../models/User");
 const Account = require("../models/Account");
 const Role = require("../models/Role");
-
+const List = require("../models/List");
+const globalVar = require("../enums/global");
 
 const googleClient = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
 
@@ -28,37 +29,40 @@ const registerUser = async (req, res) => {
       return res.status(400).json({ message: "User name đã được sử dụng" });
     }
 
-    // Validate password
     if (!validate_password(password).is_valid) {
       return res
         .status(400)
         .json({ message: "Mật khẩu phải dài hơn 8 ký tự" });
     }
 
-    // Find or create User role
     const role =
       (await Role.findOne({ role_name: "User" })) ||
       (await new Role({ role_name: "User" }).save());
 
-    // Generate verification token
     const otp = crypto.randomBytes(32).toString("hex");
 
-    // Hash password
     const hashedPassword = await bcrypt.hash(password, 10);
     const fifteenMinutes = 15 * 60 * 1000;
-    // Create account with is_active: false and verification_token
+ 
     const account = await new Account({
       email,
       password: hashedPassword,
       username,
       role: role._id,
-      is_active: false, // Account is inactive until verified
+      is_active: false, 
       otp: otp,
-      otp_expired_time: new Date(Date.now() + fifteenMinutes)
+      otp_expire_time: new Date(Date.now() + fifteenMinutes)
     }).save();
 
-    // Create associated User document
-    await new User({ account: account._id }).save();
+    const user = await new User({ account: account._id }).save();
+
+    if (!(await List.findOne({user_id: user._id}))) {
+      await new List({
+        list_name: globalVar.DEFAULT_LIST_NAME,
+        description: null,
+        user_id: user._id
+      }).save();
+    }
 
     // Send verification email
     await sendVerificationEmail(email, username, otp);
@@ -123,7 +127,15 @@ const googleLogin = async (req, res) => {
         is_active: true
       }).save();
 
-      await new User({ first_name: name || "Unknown", account: account._id }).save();
+      const user = await new User({ first_name: name || "Unknown", account: account._id }).save();
+
+        if (! await List.findOne({user_id: user._id})) {
+          await new List({
+          list_name: globalVar.DEFAULT_LIST_NAME,
+          description: null,
+          user_id: user._id
+        }).save();
+      }
     }
 
     const { accessToken, refreshToken } = generateTokens(account._id);
@@ -212,8 +224,8 @@ const verifyEmail = async (req, res) => {
     if (!token) {
       return res.status(400).json({ message: "Token không hợp lệ" });
     }
-
-    const account = await Account.findOne({ verification_token: token, otp_expire_time: { $gt: new Date() } });
+    console.log(token);
+    const account = await Account.findOne({ otp: token, otp_expire_time: { $gt: new Date() } });
     if (!account) {
       return res.status(400).json({ message: "Token xác nhận không hợp lệ hoặc đã hết hạn" });
     }
@@ -223,7 +235,7 @@ const verifyEmail = async (req, res) => {
     }
 
     account.is_active = true;
-    account.verification_token = null;
+    account.otp = null;
     await account.save();
 
     const { accessToken, refreshToken } = generateTokens(account._id);

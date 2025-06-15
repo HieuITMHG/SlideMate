@@ -57,7 +57,7 @@ const VerifiedSuccess = () => {
     };
 
     verifyEmail();
-  }, []); // 👈 đảm bảo chỉ chạy đúng 1 lần sau khi component mount
+  }, []); 
 
   return (
     <div className="min-h-screen bg-gray-100 flex items-center justify-center">
