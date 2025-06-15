@@ -31,7 +31,6 @@ const materialSchema = new mongoose.Schema(
     },
     total_pages: {
       type: Number,
-      default: 1,
     },
     total_views: {
       type: Number,
