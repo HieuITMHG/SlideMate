@@ -11,7 +11,7 @@ function Layout() {
   const user = useSelector((state) => state.user.userInfo);
   return (
     <div className="min-h-screen bg-gray-100">
-      <nav className="bg-black text-white py-4 px-10 w-screen flex sticky justify-between top-0">
+      <nav className="bg-black text-white py-4 px-10 w-screen flex sticky justify-between top-0 z-[2000] overflow-visible">
         <Link to={'/'}>
           <div className="flex items-center">
             <div>
@@ -23,30 +23,29 @@ function Layout() {
             </div>
           </div>
         </Link>
-
         <div className="flex gap-6 items-center">
-            <div>
-                <form className="flex items-center">
-                <input
-                    type="text"
-                    placeholder="Tìm kiếm..."
-                    className="border border-white p-2 rounded-l-full border-r-0 h-12 w-80 text-white"
-                />
-                <div className="border p-2 rounded-r-full h-12 flex items-center">
-                    <FaSearch className="text-gray-500" />
-                </div>
-                </form>
-            </div>
+          <div>
+            <form className="flex items-center">
+              <input
+                type="text"
+                placeholder="Tìm kiếm..."
+                className="border border-white p-2 rounded-l-full border-r-0 h-12 w-80 text-white bg-black"
+              />
+              <div className="border p-2 rounded-r-full h-12 flex items-center">
+                <FaSearch className="text-gray-500" />
+              </div>
+            </form>
+          </div>
 
-            <div>
-                <Link to={'/upload'} className="flex items-center text-2xl font-bold">
-                    <GoUpload className="h-8" />
-                    <p>Upload</p>
-                </Link>
-            </div>
+          <div>
+            <Link to={'/upload'} className="flex items-center text-2xl font-bold">
+              <GoUpload className="h-8" />
+              <p>Upload</p>
+            </Link>
+          </div>
 
-            {user ? (
-                <MainDropDown />
+          {user ? (
+            <MainDropDown />
           ) : (
             <>
               <div>
@@ -67,7 +66,7 @@ function Layout() {
           )}
         </div>
       </nav>
-      <main>
+      <main className="z-0">
         <Outlet />
       </main>
     </div>

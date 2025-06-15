@@ -5,4 +5,9 @@ const FileType = Object.freeze({
   PPT: '68356afcf4697dae5a627f30',
 });
 
-export default FileType;
+const RoleType = Object.freeze({
+  ADMIN: "684e1377f1a4ed819e6af4a4",
+  USER: "682ad21524c080753e487de4",
+});
+
+export { FileType, RoleType };

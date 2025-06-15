@@ -8,7 +8,7 @@ import { useNavigate } from 'react-router-dom';
 function Register() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [name, setName] = useState('');
+  const [username, setUsername] = useState('');
   const [error, setError] = useState('');
   const dispatch = useDispatch();
   const navigate = useNavigate();
@@ -16,9 +16,9 @@ function Register() {
   const handleRegister = async (e) => {
     e.preventDefault();
     try {
-      const response = await publicApi.post('/api/users/register', { email, password, name });
+      const response = await publicApi.post('/api/users/register', { email, password, username });
       localStorage.setItem('accessToken', response.data.accessToken);
-      dispatch(setUserInfo({ email, name }));
+      dispatch(setUserInfo({ email, username }));
       navigate('/profile');
     } catch (err) {
       setError(err.response?.data.message || 'Lỗi đăng ký');
@@ -47,11 +47,11 @@ function Register() {
         <h2 className="text-2xl font-bold mb-4">Đăng Ký</h2>
         {error && <p className="text-red-500 mb-4">{error}</p>}
         <div className="mb-4">
-          <label className="block text-gray-700">Tên</label>
+          <label className="block text-gray-700">username</label>
           <input
             type="text"
-            value={name}
-            onChange={(e) => setName(e.target.value)}
+            value={username}
+            onChange={(e) => setUsername(e.target.value)}
             className="w-full border p-2 rounded"
             required
           />

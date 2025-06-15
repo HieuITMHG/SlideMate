@@ -1,6 +1,9 @@
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 const { OAuth2Client } = require("google-auth-library");
+
+const {validate_password} = require('../utils/user')
+
 const User = require("../models/User");
 const Account = require("../models/Account");
 const Role = require("../models/Role");
@@ -15,7 +18,6 @@ const generateTokens = (userId) => ({
 
 // Thiết lập cookies
 const setTokensCookie = (res, accessToken, refreshToken) => {
-  console.log("set token!!!!");
   const cookieOptions = {
     httpOnly: true,
     secure: false,
@@ -29,10 +31,18 @@ const setTokensCookie = (res, accessToken, refreshToken) => {
 // Đăng ký người dùng
 const registerUser = async (req, res) => {
   try {
-    const { email, password, first_name, username } = req.body;
+    const { email, password, username } = req.body;
 
     if (await Account.findOne({ email })) {
-      return res.status(400).json({ message: "Email already exists" });
+      return res.status(400).json({ message: "Email đã được sử dụng" });
+    }
+
+    if (await Account.findOne({ username })) {
+      return res.status(400).json({ message: "User name đã được sử dụng" })
+    }
+
+    if (!validate_password(password).is_valid) {
+        return res.status(400).json({message: "Mật khẩu phải dài hơn 8 ký tự"})
     }
 
     const role = await Role.findOne({ role_name: "User" }) || (await new Role({ role_name: "User" }).save());
@@ -45,12 +55,12 @@ const registerUser = async (req, res) => {
       role: role._id,
     }).save();
 
-    await new User({ first_name, account: account._id }).save();
+    await new User({ account: account._id }).save();
 
     const { accessToken, refreshToken } = generateTokens(account._id);
     setTokensCookie(res, accessToken, refreshToken);
 
-    res.status(201).json({ user: { email, first_name } });
+    res.status(201).json({ user: { email, username} });
   } catch (error) {
     console.error("Registration error:", error.stack);
     res.status(500).json({ message: "Server error" });
@@ -67,11 +77,14 @@ const loginUser = async (req, res) => {
       return res.status(400).json({ message: "Invalid credentials" });
     }
 
-    const user = await User.findOne({ account: account._id });
+    if (!account.is_active) {
+      return res.status(400).json({message:"Tài khoản không khả dụng"});
+    }
+
     const { accessToken, refreshToken } = generateTokens(account._id);
     setTokensCookie(res, accessToken, refreshToken);
 
-    res.json({ user: { email, name: user?.first_name || account.username } });
+    res.json({ user: { email: account.email , username: account.username, role_id: account.role } });
   } catch (error) {
     console.error("Login error:", error.stack);
     res.status(500).json({ message: "Server error" });
@@ -99,7 +112,6 @@ const googleLogin = async (req, res) => {
       const role = await Role.findOne({ role_name: "User" }) || (await new Role({ role_name: "User" }).save());
       account = await new Account({
         email,
-        googleId,
         username: name || `User_${googleId}`,
         role: role._id,
       }).save();

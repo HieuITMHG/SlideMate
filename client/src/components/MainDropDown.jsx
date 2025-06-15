@@ -1,4 +1,3 @@
-// MainDropDown.jsx
 import { useDispatch, useSelector } from "react-redux";
 import { clearUserInfo } from "../store/slices/userSlice";
 import { useState } from "react";
@@ -26,7 +25,7 @@ const MainDropDown = () => {
   };
 
   return (
-    <div className="relative cursor-pointer z-[999]" onClick={handleToggleDropDown} > 
+    <div className="relative cursor-pointer z-[1000]" onClick={handleToggleDropDown}>
       <img
         src={user?.avatar || defaultAvatar}
         alt="User Avatar"
@@ -36,7 +35,7 @@ const MainDropDown = () => {
       {isOpen && (
         <div
           id="main-drop-down"
-          className="w-48 bg-black text-white absolute top-16 right-0 rounded shadow-lg overflow-visible"
+          className="w-48 bg-black text-white absolute top-16 right-0 rounded shadow-lg overflow-visible z-[1000]"
         >
           <p className="p-4">Hello, {user?.name || "User"}</p>
           <ul>

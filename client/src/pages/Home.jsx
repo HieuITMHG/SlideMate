@@ -73,10 +73,10 @@ const Home = () => {
     return <div>Loading...</div>;
   } else {
     return (
-      <div className="min-h-screen bg-gray-100">
+      <div className="min-h-screen bg-white">
         {/* Filter */}
         <div
-          className={`transition-all duration-300 sticky top-0 w-full h-16 bg-gray-800 z-50 ${
+          className={`transition-all duration-300 sticky top-0 w-full h-16 bg-gray-800 z-10 ${
             showFilter ? "opacity-100 translate-y-0" : "opacity-0 -translate-y-full"
           }`}
         />
@@ -90,11 +90,12 @@ const Home = () => {
                 {/* Nút cuộn trái */}
                 <button
                   onClick={() => scrollLeft(catIndex)}
-                  className="absolute left-0 z-10 p-2 bg-gray-200 rounded-full hover:bg-gray-300"
+                  className="absolute left-0 z-10 p-2 h-full bg-transparent group cursor-pointer"
                   aria-label="Scroll left"
                 >
-                  <FaChevronLeft />
+                  <FaChevronLeft className="text-gray-400 text-2xl group-hover:text-black transition-colors duration-200" />
                 </button>
+
 
                 {/* Container cuộn ngang */}
                 <div
@@ -120,10 +121,10 @@ const Home = () => {
                 {/* Nút cuộn phải */}
                 <button
                   onClick={() => scrollRight(catIndex)}
-                  className="absolute right-0 z-10 p-2 bg-gray-200 rounded-full hover:bg-gray-300"
+                  className="absolute right-0 z-10 p-2 h-full bg-transparent group cursor-pointer"
                   aria-label="Scroll right"
                 >
-                  <FaChevronRight />
+                  <FaChevronRight className="text-gray-400 text-2xl group-hover:text-black transition-colors duration-200"/>
                 </button>
               </div>
             </div>

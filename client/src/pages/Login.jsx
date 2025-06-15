@@ -3,7 +3,8 @@ import { useDispatch } from 'react-redux';
 import { GoogleLogin, GoogleOAuthProvider } from '@react-oauth/google';
 import publicApi from '../utils/publicApi.js';
 import { setUserInfo } from '../store/slices/userSlice';
-import { useNavigate, useLocation } from 'react-router-dom';
+import { useNavigate, useLocation, Link } from 'react-router-dom';
+import {RoleType} from "../enums";
 
 function Login() {
   const [email, setEmail] = useState('');
@@ -11,41 +12,18 @@ function Login() {
   const [error, setError] = useState('');
   const dispatch = useDispatch();
   const navigate = useNavigate();
-  const location = useLocation();
-
-  // Xử lý redirect từ Google OAuth
-  useEffect(() => {
-    const query = new URLSearchParams(location.search);
-    const accountId = query.get('accountId');
-    const errorMessage = query.get('message');
-
-    if (errorMessage) {
-      setError(decodeURIComponent(errorMessage));
-    } else if (accountId) {
-      // Xác thực thành công, gọi API để lấy thông tin người dùng
-      publicApi.get('/api/users/me')
-        .then(response => {
-          dispatch(setUserInfo(response.data.user));
-          navigate('/');
-        })
-        .catch(err => {
-          setError('Lỗi lấy thông tin người dùng sau OAuth');
-        });
-    }
-  }, [location, dispatch, navigate]);
 
   const handleLogin = async (e) => {
     e.preventDefault();
     try {
       const response = await publicApi.post('/api/users/login', { email, password });
-      const { user, needsAuth, authUrl } = response.data;
+      const { user } = response.data;
 
       dispatch(setUserInfo(user));
-      if (needsAuth) {
-        // Chuyển hướng đến authUrl nếu cần Google OAuth
-        console.log('Redirecting to Google auth URL:', authUrl);
-        window.location.href = authUrl;
-      } else {
+      console.log(user.role_id);
+      if (user.role_id == RoleType.ADMIN) {
+        navigate('/admin')
+      }else {
         navigate('/');
       }
     } catch (err) {
@@ -56,16 +34,9 @@ function Login() {
   const handleGoogleSuccess = async (credentialResponse) => {
     try {
       const response = await publicApi.post('/api/users/google', { token: credentialResponse.credential });
-      const { user, needsAuth, authUrl } = response.data;
-
+      const { user } = response.data;
       dispatch(setUserInfo(user));
-      if (needsAuth) {
-        // Chuyển hướng đến authUrl nếu cần Google OAuth
-        console.log('Redirecting to Google auth URL:', authUrl);
-        window.location.href = authUrl;
-      } else {
-        navigate('/');
-      }
+      navigate('/');
     } catch (error) {
       setError('Lỗi đăng nhập Google');
     }
@@ -110,6 +81,9 @@ function Login() {
             text="signin_with"
           />
         </GoogleOAuthProvider>
+          <div className='p-2 text-gray-600'>
+            New to SlideMate? <Link to={'/register'} className='underline text-blue-500 hover:text-blue-700 font-semibold'>Sign Up</Link>
+          </div>
       </form>
     </div>
   );

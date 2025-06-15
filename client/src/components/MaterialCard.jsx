@@ -1,5 +1,5 @@
 import { Link } from "react-router-dom";
-import FileType from "../enums";
+import {FileType} from "../enums";
 
 const MaterialCard = ({ material }) => {
     console.log(material);
@@ -19,13 +19,14 @@ const MaterialCard = ({ material }) => {
 
             <div className="mt-2.5">
                 <Link to={`/material/${material._id}`}>
-                    <p className="font-bold text-2xl">{material.title}</p>
+                    <p className="font-bold text-2xl line-clamp-2">{material.title}</p>
                 </Link>
             </div>
 
             <Link to={`/user/${material.user._id}`} className="hover:underline font-semibold text-[#00809D]">
                 <p>{material.user.username}</p>
             </Link>
+            <p>{material.likes}</p>
         </div>
     );
 };

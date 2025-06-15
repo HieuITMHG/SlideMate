@@ -3,15 +3,15 @@ const mongoose = require("mongoose");
 
 const materialSchema = new mongoose.Schema(
   {
-    user_id: {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: "User",
-      required: true,
-    },
     title: {
       type: String,
       required: true,
       trim: true,
+    },
+    user_id: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "User",
+      required: true,
     },
     description: {
       type: String,
@@ -29,31 +29,36 @@ const materialSchema = new mongoose.Schema(
       type: String,
       required: true,
     },
-    total_page: {
+    total_pages: {
       type: Number,
       default: 1,
     },
-    total_view: {
+    total_views: {
+      type: Number,
+      default: 0,
+    },
+    total_likes: {
       type: Number,
       default: 0,
     },
     visibility: {
       type: String,
-      enum: ["PUBLIC", "PRIVATE", "PROTECTED"],
+      enum: ["PUBLIC", "PRIVATE"],
       required: true,
     },
-    category_name: {
-      type: String,
+    category_id: {
+      type: mongoose.Schema.Types.ObjectId,
       required: true,
-      ref: "Category", // References Category model
+      ref: "Category", 
     },
     file_type_id: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "FileType",
       required: true,
     },
+    is_active: {type: Boolean, default:false}
   },
-  { timestamps: true } // Adds createdAt and updatedAt
+  { timestamps: true } 
 );
 
 module.exports = mongoose.model("Material", materialSchema);
