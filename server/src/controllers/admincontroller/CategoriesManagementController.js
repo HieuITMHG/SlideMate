@@ -33,4 +33,34 @@ const createNewCategory = async (req, res) => {
     }
 };
 
-module.exports = { getAllCaregories, createNewCategory };
+const renameCategory = async (req, res) =>{
+    try{
+        const {id, new_name} = req.body;
+        Printer.notify("call api rename category: ", req.body);
+
+
+        // check id
+        const checkId = await Category.exists({_id:id});
+        if (!checkId)
+            throw new Error("id danh mục không tồn tại")
+
+        const category = await Category.find({_id:id});
+        if (category[0].category_name == new_name)
+            throw new Error("Tên danh mục không thay đổi");
+
+        const checkDuplicateName = Category.exists({category_name:new_name});
+        if(checkDuplicateName)
+            throw new Error("Tên danh mục đã tồn tại")
+
+        // update
+        const result = await Category.updateOne({_id: id}, {$set:{category_name:new_name}});
+
+        console.log(result);
+        res.json({ message: "ok" , "data":[]});
+    }catch(err){
+        console.error("error:", err);
+        res.status(500).json({ message: err.message });
+    }
+};
+
+module.exports = { getAllCaregories, createNewCategory, renameCategory };

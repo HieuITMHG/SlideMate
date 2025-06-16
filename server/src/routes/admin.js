@@ -15,9 +15,10 @@ router.post('/users/:id/activate', activateUser);
 
 const {
     getAllCaregories,
-    createNewCategory
+    createNewCategory,
+    renameCategory
 } = require("../controllers/admincontroller/CategoriesManagementController");
 router.get("/categories", getAllCaregories);
-router.post("/categories/new/", createNewCategory);
-
+router.post("/categories/new", createNewCategory);
+router.post("/categories/rename", renameCategory);
 module.exports = router;
