@@ -1,40 +1,23 @@
 const express = require('express');
 const router = express.Router();
 const auth = require('../middleware/auth');
+const AdminController = require("../controllers/adminController");
 
-// user management
-const {
-    getAllUser,
-    deactivateUser,
-    activateUser
-} = require("../controllers/admincontroller/UsersManagementController");
+// users managegents
+router.get('/users', AdminController.getAllUsers);
+router.post('/users/:id/deactivate', AdminController.deactivateUser);
+router.post('/users/:id/activate', AdminController.activateUser);
 
-router.get('/users', getAllUser);
-router.post('/users/:id/deactivate', deactivateUser);
-router.post('/users/:id/activate', activateUser);
+// categories managements
+router.get("/categories", AdminController.getAllCategories);
+router.post("/categories/new", AdminController.createNewCategory);
+router.post("/categories/rename", AdminController.renameCategory);
 
-const {
-    getAllCaregories,
-    createNewCategory,
-    renameCategory
-} = require("../controllers/admincontroller/CategoriesManagementController");
-router.get("/categories", getAllCaregories);
-router.post("/categories/new", createNewCategory);
-router.post("/categories/rename", renameCategory);
+// material reports managements
+router.get("/reports/pending",auth, AdminController.getAllPendingReportGroupByMaterial);
+router.get("/reports/handled", AdminController.getAllHandledReports)
+router.post("/reports/handle",auth, AdminController.handleAllReportsOfMaterial)
 
-const {
-    getAllPendingReports,
-    getAllHandledReports,
-    handleAllReportOfMaterial
-
-} = require("../controllers/admincontroller/ReportsManagementController");
-
-router.get("/reports/pending", getAllPendingReports);
-router.get("/reports/handled", getAllHandledReports)
-router.post("/reports/handle", handleAllReportOfMaterial)
-
-const {
-    getStatistic
-} = require("../controllers/admincontroller/StatisticsController");
-router.get("/statistics", getStatistic);
+// statistics management
+router.get("/statistics", AdminController.getStatisticsData);
 module.exports = router;
