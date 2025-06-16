@@ -6,6 +6,7 @@ const path = require("path");
 
 const userRoutes = require('./src/routes/user');
 const materialRoutes = require('./src/routes/material');
+const adminRoutes = require("./src/routes/admin.js")
 const listRoutes = require('./src/routes/list')
 const connectDB = require('./src/db/connectDB.js');
 const dotenv = require('dotenv');
@@ -58,6 +59,7 @@ connectDB();
 app.use('/api/users', userRoutes);
 app.use('/api/materials', materialRoutes);
 app.use('/api/lists', listRoutes);
+app.use('/api/admin', adminRoutes);
 
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {

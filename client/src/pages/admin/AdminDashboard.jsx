@@ -13,6 +13,7 @@ const StatItem = ({ name, value }) => {
 
 
 const AdminDashboard = () => {
+    console.log("token:", localStorage.getItem('accessToken'));
     const [statisticsData, setStatisticsData] = useState();
     const [isLoading, setIsLoading] = useState(true)
 
