@@ -9,7 +9,7 @@ const AdminLayout = ()=>{
 
             <div className="flex flex-1">
                 <AdminSidebar />
-                <main className="flex-1 p-6 ">
+                <main className="flex-1 p-2">
                     <Outlet />
                 </main>
             </div>
