@@ -17,7 +17,7 @@ const MaterialCard = ({ material }) => {
       setIsSaved(response.saved); // Confirm state from API
       toast.success(response.message, {
         position: "top-right",
-        autoClose: 3000, // Adjusted to 3s for consistency with your App.js
+        autoClose: 10000, // Adjusted to 3s for consistency with your App.js
         hideProgressBar: false,
         closeOnClick: true,
         pauseOnHover: true,
@@ -28,7 +28,7 @@ const MaterialCard = ({ material }) => {
       setIsSaved(previousIsSaved); // Revert on error
       toast.error(err.response?.data?.message || "Error toggling save status!", {
         position: "top-right",
-        autoClose: 3000,
+        autoClose: 10000,
         hideProgressBar: false,
         closeOnClick: true,
         pauseOnHover: true,

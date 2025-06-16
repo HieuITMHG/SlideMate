@@ -1,14 +1,51 @@
+import React, { useState, useEffect } from 'react';
+import RecommendItem from './RecommendItem';
+import { toast } from 'react-toastify';
+import { getMaterialsByCategory } from '../../apis/materialApis';
+
 const RecommendSidebar = () => {
-    return(
-    <div className="w-72 p-4 border-l border-gray-200 bg-white overflow-y-auto max-h-[calc(100vh-120px)] shadow-[-2px_0_4px_rgba(0,0,0,0.05)]">
-        <h3 className="text-lg font-bold mb-4 text-gray-800">Gợi ý tài liệu</h3>
-        <ul className="list-none p-0 text-gray-600">
-        <li className="mb-2">Tài liệu 1</li>
-        <li className="mb-2">Tài liệu 2</li>
-        <li className="mb-2">Tài liệu 3</li>
-        </ul>
+  const [recommendMaterial, setRecommendMaterial] = useState([]);
+
+  useEffect(() => {
+    const fetchMaterials = async () => {
+      try {
+        const response = await getMaterialsByCategory('Technology');
+        setRecommendMaterial(response.materials || []);
+      } catch (error) {
+        console.error('Error fetching materials:', {
+          message: error.message,
+          response: error.response?.data,
+          status: error.response?.status,
+        });
+        toast.error('Không thể tải tài liệu gợi ý!', {
+          position: 'top-right',
+          autoClose: 3000,
+          hideProgressBar: false,
+          closeOnClick: true,
+          pauseOnHover: true,
+          draggable: true,
+          theme: 'light',
+        });
+      }
+    };
+
+    fetchMaterials();
+  }, []);
+
+  return (
+    <div className="w-full max-w-[320px] p-2 bg-white">
+      <h3 className="text-xl font-bold mb-3 text-gray-800">Gợi ý tài liệu</h3>
+      {recommendMaterial.length > 0 ? (
+        <div className="space-y-3">
+          {recommendMaterial.map((material) => (
+            <RecommendItem key={material.id} material={material} />
+          ))}
+        </div>
+      ) : (
+        <p className="text-gray-600 text-sm">Chưa có tài liệu gợi ý.</p>
+      )}
     </div>
-    )
+  );
 };
 
 export default RecommendSidebar;

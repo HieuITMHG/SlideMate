@@ -31,7 +31,7 @@ function App() {
     <Suspense fallback={<Loader />}>
       <ToastContainer
         position="top-right"
-        autoClose={3000}
+        autoClose={10000}
         hideProgressBar={false}
         newestOnTop={false}
         closeOnClick
