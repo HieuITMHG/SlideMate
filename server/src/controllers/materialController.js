@@ -13,6 +13,7 @@ const FileType = require("../models/FileType");
 const User = require("../models/User");
 const List = require("../models/List");
 const ListMaterial = require("../models/ListMaterial");
+const Report = require("../models/Report");
 
 const storage = multer.memoryStorage();
 const upload = multer({
@@ -326,6 +327,75 @@ const getMaterialsByCategory = async (req, res) => {
   }
 };
 
-module.exports = { getMaterialsByCategory };
+const report = async (req, res) => {
+  try {
+    const { materialId, content } = req.body;
 
-module.exports = { uploadMaterial, getMaterial, getMaterialsByCategory };
+    // Kiểm tra dữ liệu đầu vào
+    if (!materialId || !content) {
+      return res.status(400).json({ message: 'Thiết id tài liệu' });
+    }
+
+    // Kiểm tra materialId có hợp lệ
+    if (!mongoose.Types.ObjectId.isValid(materialId)) {
+      return res.status(400).json({ message: 'Id tài liệu không hợp lệ' });
+    }
+
+    // Lấy user_id từ User dựa trên account ID
+    const accountId = new mongoose.Types.ObjectId(req.user.id);
+    const user = await User.findOne({ account: accountId });
+    if (!user) {
+      return res.status(404).json({ message: 'User không tồn tại' });
+    }
+    const userId = user._id;
+
+    // Xác định khoảng thời gian của ngày hiện tại
+    const startOfDay = new Date();
+    startOfDay.setHours(0, 0, 0, 0); // 00:00:00 của ngày hiện tại
+    const endOfDay = new Date();
+    endOfDay.setHours(23, 59, 59, 999); // 23:59:59 của ngày hiện tại
+
+    // Đếm số báo cáo của user cho material_id trong ngày hiện tại
+    const reportCount = await Report.countDocuments({
+      user_id: userId,
+      material_id: materialId,
+      createdAt: {
+        $gte: startOfDay,
+        $lte: endOfDay,
+      },
+    });
+
+    // Kiểm tra giới hạn 3 báo cáo
+    if (reportCount >= 3) {
+      return res.status(429).json({
+        message: 'Bạn đã đạt giới hạn 3 lần báo cáo ngày hôm nay',
+      });
+    }
+
+    // Tạo báo cáo mới
+    const report = new Report({
+      user_id: userId,
+      material_id: materialId,
+      report_content: content,
+      status: 'PENDING', // Mặc định theo schema
+      is_delete_material: false, // Giá trị mặc định
+      is_ban_account: false, // Giá trị mặc định
+      // admin_id: null, // Giả định schema đã bỏ required: true
+    });
+
+    // Lưu báo cáo vào database
+    await report.save();
+
+    res.status(201).json({ message: 'Báo cáo thành công', report });
+  } catch (error) {
+    console.error('Error reporting material:', error.stack);
+    res.status(500).json({
+      message: 'Báo cáo thất bại',
+      error: error.message,
+    });
+  }
+};
+
+
+
+module.exports = { uploadMaterial, getMaterial, getMaterialsByCategory, report };
