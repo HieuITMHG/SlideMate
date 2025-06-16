@@ -1,13 +1,14 @@
 import { useState, useEffect, useCallback } from 'react';
-import axios from 'axios';
+import api from '../../utils/api';
 
 const UserListItem = ({ user, onToggleUser }) => {
+    console.log(user);
     return (
         <div className='grid h-11 shadow grid-cols-5 gap-4 m-2 p-2 text-center ' >
             <div>{user.user_id}</div>
             <div>{user.first_name + user.last_name}</div>
             <div>{user.email}</div>
-            <div>{(user.is_active) ? "active" : "unactive"}</div>
+            <div>{(user?.is_active) ? "active" : "unactive"}</div>
             <button
                 className={`rounded-xl w-2/3 h-full p-auto m-auto ${user.is_active ? 'bg-red-500 hover:bg-red-200' : 'bg-green-500 hover:bg-green-200'}`}
                 onClick={() => onToggleUser(user)}>
@@ -24,32 +25,38 @@ const AdminUsersManagementPage = () => {
     const [currentPage, setCurrentPage] = useState(1);
     const itemsPerPage = 10;
 
-    const fetchData = () => {
+    const fetchData = async  () => {
         setIsLoading(true);
-        const fakeData = [];
-        for (let i = 0; i < 50; i++) {
-            fakeData.push({
-                user_id: `user_${i < 10 ? '0' + i : i}`,
-                first_name: `Tên${i}`,
-                last_name: `Họ${i}`,
-                is_active: (i % 3 !== 0),
-                email: `user${i}@example.com`
-            });
+        try{
+            const response = await api.get("api/admin/users");
+            setUsers(response.data.data);
+            console.log(JSON.stringify(response.data, null, 4));
+            console.log(typeof response.data.data[0].is_active);
         }
-        setUsers(fakeData);
+        catch(e){
+            console.log(e);
+        }
+        
         setIsLoading(false);
     }
 
     const handleNextPage = () => { if (currentPage < maxPage) { setCurrentPage(currentPage + 1) } };
     const handelePrevPage = () => { if (currentPage > 1) { setCurrentPage(currentPage - 1) } };
-    const handleUser = (user) => {
+    const handleUser = async (user) => {
         const isActive = !user.is_active;
         const action = isActive?"mở khóa":"khóa";
         const confirm =window.confirm(`Bạn có xác nhận ${action} tài khoản ${user.user_id} không?`);
         if (confirm){
-
-            console.log("Accepted");
-            window.alert('Thành công!');
+            try{
+                const apiName = isActive ? 'activate' : 'deactivate';
+                const response = await api.post(`/api/admin/users/${user.user_id}/${apiName}`);
+                await fetchData();
+                window.alert('Thành công!');
+            }
+            catch (error){
+                window.alert("Có lỗi xảy ra: " + error);
+            }
+            
         }else{
             console.log("Cancelled");
         }
