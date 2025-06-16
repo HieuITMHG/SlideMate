@@ -1,52 +1,113 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react';
 import axios from 'axios';
 
+const UserListItem = ({ user, onToggleUser }) => {
+    return (
+        <div className='grid h-11 shadow grid-cols-5 gap-4 m-2 p-2 text-center ' >
+            <div>{user.user_id}</div>
+            <div>{user.first_name + user.last_name}</div>
+            <div>{user.email}</div>
+            <div>{(user.is_active) ? "active" : "unactive"}</div>
+            <button
+                className={`rounded-xl w-2/3 h-full p-auto m-auto ${user.is_active ? 'bg-red-500 hover:bg-red-200' : 'bg-green-500 hover:bg-green-200'}`}
+                onClick={() => onToggleUser(user)}>
+                {(user.is_active) ? "Khóa tài khoản" : "Mở tài khoản"}
+            </button>
+        </div>
+    );
+}
 const AdminUsersManagementPage = () => {
+
+    const [users, setUsers] = useState([]);
     const [isLoading, setIsLoading] = useState(true);
-    const [users, setUsers] = useState();
-    const [maxPage, setMaxPage] = useState();
-    const [currentPage, setCurrentPage] = useState();
+    const [maxPage, setMaxPage] = useState(1);
+    const [currentPage, setCurrentPage] = useState(1);
+    const itemsPerPage = 10;
 
-    const fetchData = async ()=>{
+    const fetchData = () => {
         setIsLoading(true);
-        try{
-            //call api...
-            const fakeData = [];
-            for(let i = 0; i < 1000; i++){
-                fakeData.push({
-                    user_id: `user_${i}`,
-                    first_name: `user_${i}_firstName`,
-                    last_name: `user_${i}_lastName`,
-                    is_active: (i % 2 == 0),
-                    email: `user${i}@gmail.com`
-                });
-            }
-            // console("wellcome");
-            console.log(JSON.stringify(fakeData, null, 4));
-            setUsers(fakeData);
+        const fakeData = [];
+        for (let i = 0; i < 50; i++) {
+            fakeData.push({
+                user_id: `user_${i < 10 ? '0' + i : i}`,
+                first_name: `Tên${i}`,
+                last_name: `Họ${i}`,
+                is_active: (i % 3 !== 0),
+                email: `user${i}@example.com`
+            });
         }
-        catch(err){
-
-        }
-        finally{
-
-        }
+        setUsers(fakeData);
         setIsLoading(false);
     }
 
-    // call api activate/deactivate
-    const handleUser = ({user_id, action})=>{
-        
-    }
+    const handleNextPage = () => { if (currentPage < maxPage) { setCurrentPage(currentPage + 1) } };
+    const handelePrevPage = () => { if (currentPage > 1) { setCurrentPage(currentPage - 1) } };
+    const handleUser = (user) => {
+        const isActive = !user.is_active;
+        const action = isActive?"mở khóa":"khóa";
+        const confirm =window.confirm(`Bạn có xác nhận ${action} tài khoản ${user.user_id} không?`);
+        if (confirm){
 
-    useEffect(()=>{
+            console.log("Accepted");
+            window.alert('Thành công!');
+        }else{
+            console.log("Cancelled");
+        }
+    }
+    useEffect(() => {
         fetchData();
     }, []);
+
+    useEffect(() => {
+        setMaxPage(Math.ceil(users.length / itemsPerPage));
+        setCurrentPage(1);
+    }, [users]);
+
+    const startIndex = (currentPage - 1) * itemsPerPage;
+    const endIndex = Math.min((currentPage * itemsPerPage), users.length);
+
+
     return (
-        <div>
-            <h1 className="text-red text-8xl">ADMIN USERS MANAGEMENTS PAGE?</h1>
-        </div>
-    )
-}
+        isLoading ? <div>Loading....</div>
+            :
+            <div className="w-full h-full bg-sky-100 from-blue-50 to-indigo-100 p-8 font-sans rounded-xl">
+                <h1 className="text-4xl font-bold text-center m-2 p-2 ">Quản lý người dùng</h1>
+
+                <div className='bg-white rounded-xl'>
+                    <div className='grid grid-cols-5 gap-4 shadow rounded-t-xl h-10 text-center p-2 font-bold bg-sky-500'>
+                        <div>UID</div>
+                        <div>Họ và tên</div>
+                        <div>Email</div>
+                        <div>Trạng thái</div>
+                        <div>hành động</div>
+                    </div>
+                    {users.slice(startIndex, endIndex).map((u) => (
+                        <UserListItem key={u.user_id} user={u} onToggleUser={handleUser} />
+                    ))}
+                     <div className='grid h-0 grid-cols-5 gap-4 m-0 p-0 rounded-b-xl bg-white'></div>
+                </div>
+
+
+                {/* page */}
+                <div className="m-auto grid grid-cols-3 gap-4 items-center text-center justify-center w-1/2 p-4">
+                    <button className="bg-sky-500 text-white px-4 py-2 rounded hover:bg-sky-600 disabled:cursor-not-allowed disabled:bg-gray-500"
+                        disabled={currentPage == 1}
+                        onClick={handelePrevPage}
+                    >
+                        Trang trước
+                    </button>
+
+                    <div className="text-gray-700 font-medium">{`${currentPage} / ${maxPage}`}</div>
+
+                    <button className="bg-sky-500 text-white px-4 py-2 rounded hover:bg-sky-600 disabled:cursor-not-allowed disabled:bg-gray-500"
+                        disabled={currentPage == maxPage}
+                        onClick={handleNextPage}
+                    >
+                        Trang sau
+                    </button>
+                </div>
+            </div>
+    );
+};
 
 export default AdminUsersManagementPage;
