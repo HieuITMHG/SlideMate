@@ -1,11 +1,17 @@
 const express = require('express');
 const router = express.Router();
 const {
-    toggleSaveMaterial
+  toggleSaveMaterial,
+  getMyList,
+  getMyListDetail,
+  createListAndAddMaterial,
 } = require('../controllers/listController');
 
 const auth = require('../middleware/auth');
 
 router.post('/toggle-save', auth, toggleSaveMaterial);
+router.get('/get-my-list', auth, getMyList);
+router.get('/get-my-list-detail/:listId', auth, getMyListDetail); 
+router.post('/create', auth, createListAndAddMaterial);
 
 module.exports = router;
