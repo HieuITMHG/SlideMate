@@ -1,72 +1,36 @@
 import React, { useState, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
-
 import { Worker, Viewer } from '@react-pdf-viewer/core';
 import { defaultLayoutPlugin } from '@react-pdf-viewer/default-layout';
-
 import '@react-pdf-viewer/core/lib/styles/index.css';
 import '@react-pdf-viewer/default-layout/lib/styles/index.css';
-
 import api from '../utils/api';
 
-const Toolbar = ({ onSave, onLike }) => (
-  <div
-    style={{
-      display: 'flex',
-      justifyContent: 'flex-end',
-      gap: '1rem',
-      padding: '1rem',
-      borderBottom: '1px solid #ddd',
-      backgroundColor: 'white',
-      position: 'sticky',
-      top: 0,
-      zIndex: 10,
-    }}
-  >
-    <button onClick={onSave} className="btn-save">
-      💾 Lưu
-    </button>
-    <button onClick={onLike} className="btn-like">
-      ❤️ Thích
-    </button>
-  </div>
-);
-
-const RecommendSidebar = () => (
-  <div
-    style={{
-      width: 280,
-      padding: '1rem',
-      borderLeft: '1px solid #ddd',
-      backgroundColor: '#fafafa',
-      overflowY: 'auto',
-    }}
-  >
-    <h3>Gợi ý tài liệu</h3>
-    <ul>
-      <li>Tài liệu 1</li>
-      <li>Tài liệu 2</li>
-      <li>Tài liệu 3</li>
-      {/* Bạn có thể map list recommend thực tế ở đây */}
-    </ul>
-  </div>
-);
+import Footer from '../components/Footer';
+import RecommendSidebar from '../components/MaterialDetail/RecommendSidebar';
+import Toolbar from '../components/MaterialDetail/Toolbar';
 
 const MaterialDetail = () => {
   const { id: materialId } = useParams();
   const [material, setMaterial] = useState(null);
   const [pdfUrl, setPdfUrl] = useState(null);
+  const [isSaved, setIsSaved] = useState(false);
+  const [isLiked, setIsLiked] = useState(false);
+  const [isReportModalOpen, setIsReportModalOpen] = useState(false);
+  const [reportContent, setReportContent] = useState('');
 
-  // Tạo plugin mặc định với sidebar thumbnails
-  const defaultLayoutPluginInstance = defaultLayoutPlugin();
+  const defaultLayoutPluginInstance = defaultLayoutPlugin({
+    renderToolbar: () => null, // Disable the default toolbar
+  });
 
   useEffect(() => {
     const fetchMaterial = async () => {
       try {
         const res = await api.get(`/api/materials/${materialId}`);
-        console.log(res.data.material);
         setMaterial(res.data.material);
         setPdfUrl(res.data.material.pdf_version_path);
+        setIsSaved(res.data.material.is_saved || false);
+        setIsLiked(res.data.material.is_liked || false);
       } catch (err) {
         console.error('Lỗi khi tải tài liệu:', err);
       }
@@ -75,45 +39,118 @@ const MaterialDetail = () => {
   }, [materialId]);
 
   const handleSave = () => {
-    alert('Bạn đã lưu tài liệu!');
-    // TODO: Thêm logic lưu tài liệu
+    setIsSaved(!isSaved);
+    alert(isSaved ? 'Đã bỏ lưu tài liệu!' : 'Bạn đã lưu tài liệu!');
+    // TODO: Gọi API để cập nhật trạng thái lưu
   };
 
   const handleLike = () => {
-    alert('Bạn đã thích tài liệu!');
-    // TODO: Thêm logic thích tài liệu
+    setIsLiked(!isLiked);
+    alert(isLiked ? 'Đã bỏ thích tài liệu!' : 'Bạn đã thích tài liệu!');
+    // TODO: Gọi API để cập nhật trạng thái thích
+  };
+
+  const handleDownload = () => {
+    alert('Tải xuống tài liệu!');
+    // TODO: Thêm logic tải xuống
+  };
+
+  const handleReport = () => {
+    setIsReportModalOpen(true); // Mở modal khi nhấn "Report"
+  };
+
+  const handleReportSubmit = async () => {
+    if (!reportContent.trim()) {
+      alert('Vui lòng nhập nội dung báo cáo!');
+      return;
+    }
+
+    try {
+      await api.post('/api/materials/report', {
+        materialId,
+        content: reportContent,
+      });
+      alert('Báo cáo đã được gửi!');
+      setReportContent('');
+      setIsReportModalOpen(false);
+    } catch (err) {
+      console.error('Lỗi khi gửi báo cáo:', err);
+      alert('Không thể gửi báo cáo. Vui lòng thử lại!');
+    }
+  };
+
+  const handleCloseModal = () => {
+    setIsReportModalOpen(false);
+    setReportContent('');
   };
 
   if (!material) {
-    return <p className="text-center mt-10">Đang tải tài liệu...</p>;
+    return <p className="text-center mt-10 text-gray-800">Đang tải tài liệu...</p>;
   }
 
   return (
-    <div className="max-w-6xl mx-auto p-6 flex flex-col h-screen">
-      <h1 className="text-3xl font-bold mb-4">{material.title}</h1>
-      <p className="mb-4 text-gray-600">{material.description}</p>
+    <div className="w-full mx-auto p-6 flex flex-col min-h-screen bg-white overflow-y-auto">
+      <h1 className="text-3xl font-bold mb-4 text-gray-800">{material.title}</h1>
+      <p className="mb-6 text-gray-600 whitespace-normal overflow-auto">
+        {material.description}
+      </p>
 
-      <Toolbar onSave={handleSave} onLike={handleLike} />
+      <Toolbar
+        onSave={handleSave}
+        onLike={handleLike}
+        onDownload={handleDownload}
+        onReport={handleReport}
+        isSaved={isSaved}
+        isLiked={isLiked}
+      />
 
-      <div style={{ display: 'flex', flex: 1, overflow: 'hidden', border: '1px solid #ddd', borderRadius: 6, backgroundColor: 'white' }}>
+      <div className="flex flex-1 overflow-hidden border border-gray-200 rounded-md bg-white mb-8">
         <Worker workerUrl="https://unpkg.com/pdfjs-dist@3.11.174/build/pdf.worker.min.js">
-          {/* Viewer chiếm khoảng 75% chiều ngang */}
-          <div style={{ flex: 3, height: '100%', overflow: 'hidden' }}>
+          <div className="flex-1 overflow-y-auto max-h-[calc(100vh-200px)]">
             <Viewer
               fileUrl={pdfUrl}
               plugins={[defaultLayoutPluginInstance]}
               defaultScale={1.2}
               theme="light"
-              localization={{}}
             />
           </div>
         </Worker>
-
-        {/* Sidebar Recommend bên phải */}
         <RecommendSidebar />
       </div>
+
+      {/* Modal Báo cáo */}
+      {isReportModalOpen && (
+        <div className="fixed inset-0 bg-gray-600/50 bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white p-6 rounded-lg shadow-lg max-w-md w-full">
+            <h2 className="text-xl font-bold mb-4 text-gray-800">Báo cáo tài liệu</h2>
+            <textarea
+              className="w-full p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 mb-4"
+              rows="5"
+              placeholder="Nhập lý do báo cáo..."
+              value={reportContent}
+              onChange={(e) => setReportContent(e.target.value)}
+            />
+            <div className="flex justify-end space-x-3">
+              <button
+                className="px-4 py-2 bg-gray-300 text-gray-800 rounded-md hover:bg-gray-400 transition-colors duration-200"
+                onClick={handleCloseModal}
+              >
+                Hủy
+              </button>
+              <button
+                className="px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700 transition-colors duration-200"
+                onClick={handleReportSubmit}
+              >
+                Báo cáo
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      <Footer />
     </div>
   );
 };
 
-export default MaterialDetail;
+export default React.memo(MaterialDetail);

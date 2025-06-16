@@ -5,6 +5,7 @@ import { ToastContainer } from "react-toastify";
 
 // Lazy load pages and components
 const Layout = lazy(() => import('./pages/Layout'));
+const Save = lazy(() => import('./pages/Save'));
 const Home = lazy(() => import('./pages/Home'));
 const Register = lazy(() => import('./pages/Register'));
 const VerifyEmailPage = lazy(() => import('./pages/VerifyMailPage'));
@@ -49,6 +50,7 @@ function App() {
         <Route path="/reset-password" element={<ResetPassword />} />
 
         <Route element={<Layout />}>
+          <Route path="/save" index element={ <Save/>} />
           <Route index element={<Home />} />
           <Route
             path="/profile"
