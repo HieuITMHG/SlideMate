@@ -168,7 +168,7 @@ const ReportsDetails = ({ data, onAction, onExit }) => {
                         type="checkbox"
                         checked={isDeleteMaterial}
                         onChange={() => setIsDeleteMaterial(!isDeleteMaterial)} />
-                    <span>Xoa tai lieu</span>
+                    <span className={(isDeleteMaterial) ? "text-red-500 font-bold text-2xl" : ""}>Xoa tai lieu</span>
                 </div>
 
                 <div >
@@ -177,7 +177,7 @@ const ReportsDetails = ({ data, onAction, onExit }) => {
                         type="checkbox"
                         checked={isBanAccount}
                         onChange={() => setIsBanAccount(!isBanAccount)} />
-                    <span>Khoa tai khoan</span>
+                    <span className={(isBanAccount ? "text-red-500 font-bold text-2xl" : "")}>Khoa tai khoan</span>
                 </div>
 
                 <div className='flex items-center justify-center p-1 m-1 text-center'>
@@ -231,7 +231,29 @@ const PendingReportsPage = () => {
     }, [reports]);
 
     const handleReport = async ({ data, isDeleteMaterial, isBanAccount }) => {
-        window.alert(`${isDeleteMaterial}, ${isBanAccount} \n chua code api, tutu`);
+        const confirmMessage =
+            "Vui lòng xác nhận hành động:\n" +
+            ((isDeleteMaterial) ? "Xóa tài liệu này\n" : "Không xóa tài liệu này\n") +
+            ((isBanAccount) ? "Khóa tài khoản chủ sở hữu tài liệu" : "Không khóa tài khoản chủ sở hữu tài liệu");
+        const confirm = window.confirm(confirmMessage);
+
+        if (confirm) {
+            try {
+                const body = {
+                    material_id: data.material_id,
+                    owner_id: data.material_owner_id,
+                    is_delete_material: isDeleteMaterial,
+                    is_ban_account: isBanAccount
+                };
+                const response = await api.post("/api/admin/reports/handle", body);
+                window.alert("Hoàn thành");
+                fetchData();
+            }
+            catch (error) {
+                const message = error?.response?.data?.message || "Lỗi không xác định";
+                window.alert(message);
+            }
+        }
         setCurrentReport(null);
     }
     return (
