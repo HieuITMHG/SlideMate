@@ -117,6 +117,9 @@ const googleLogin = async (req, res) => {
       .then((ticket) => ticket.getPayload());
 
     let account = await Account.findOne({ email });
+    if (!account.is_active) {
+      return res.status(400).json({message:"Tài khoản không khả dụng"});
+    }
 
     if (!account) {
       const role = await Role.findOne({ role_name: "User" }) || (await new Role({ role_name: "User" }).save());

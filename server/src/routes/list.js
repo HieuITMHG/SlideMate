@@ -8,9 +8,10 @@ const {
 } = require('../controllers/listController');
 
 const auth = require('../middleware/auth');
+const softauth = require('../middleware/softauth');
 
 router.post('/toggle-save', auth, toggleSaveMaterial);
-router.get('/get-my-list', auth, getMyList);
+router.get('/get-my-list', softauth, getMyList);
 router.get('/get-my-list-detail/:listId', auth, getMyListDetail); 
 router.post('/create', auth, createListAndAddMaterial);
 

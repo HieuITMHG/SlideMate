@@ -17,6 +17,9 @@ const MaterialDetail = lazy(() => import('./pages/MaterialDetail'));
 const ProtectedRoute = lazy(() => import('./components/ProtectedRoute'));
 const ForgotPassword = lazy(() => import('./pages/ForgotPassword'));
 const ResetPassword = lazy(() => import('./pages/ResetPassword'));
+const CategoryPage = lazy(() => import ('./pages/CategoryPage'));
+const SearchResultsPage = lazy(() => import ('./pages/SearchResultsPage'));
+
 
 // admin page
 const AdminLayout = lazy(() => import ('./pages/admin/AdminLayout'))
@@ -68,7 +71,9 @@ function App() {
             </ProtectedRoute>
           }
           />
+          <Route path="/category/:name" element={<CategoryPage />} />
           <Route path="/material/:id" element={<MaterialDetail />} />
+          <Route path="/search" element={<SearchResultsPage />} />
         </Route>
         
         

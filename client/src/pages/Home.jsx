@@ -1,24 +1,41 @@
 import { useEffect, useState, useRef } from "react";
-import { getMaterialsByCategory } from "../apis/materialApis";
+import { getTopMaterialsByCategory } from "../apis/materialApis";
 import MaterialCard from "../components/MaterialCard";
 import Footer from "../components/Footer";
 import { FaChevronLeft, FaChevronRight } from "react-icons/fa";
+import { getAllCategories } from '../apis/categoryApis';
+import { Link } from 'react-router-dom';
+import banner from '@imgs/banner.jpg';
 
 const Home = () => {
+  const [categories, setCategories] = useState([]);
   const [showFilter, setShowFilter] = useState(true);
   const [lastScrollY, setLastScrollY] = useState(0);
   const [isLoading, setIsLoading] = useState(true);
   const [materialsByCategory, setMaterialsByCategory] = useState([]);
   const lst_category = ["Technology", "Literature", "Biology"];
   const scrollRefs = useRef([]);
+  const bannerRef = useRef(null);
 
-  // Fetch materials and thumbnails
+  useEffect(() => {
+    console.log("Banner URL:", banner); // Debug import
+    const fetchCategories = async () => {
+      try {
+        const res = await getAllCategories();
+        setCategories(res);
+      } catch (err) {
+        console.error("Lỗi khi tải danh mục:", err);
+      }
+    };
+    fetchCategories();
+  }, []);
+
   useEffect(() => {
     const fetchMaterials = async () => {
       try {
         const updatedMaterials = [];
         for (const category of lst_category) {
-          const response = await getMaterialsByCategory(category);
+          const response = await getTopMaterialsByCategory(category);
           updatedMaterials.push({
             category: response.category || category,
             materials: response.materials || [],
@@ -38,7 +55,6 @@ const Home = () => {
     fetchMaterials();
   }, []);
 
-  // Scroll handler for filter visibility
   useEffect(() => {
     const handleScroll = () => {
       const currentScrollY = window.scrollY;
@@ -54,7 +70,30 @@ const Home = () => {
     return () => window.removeEventListener("scroll", handleScroll);
   }, [lastScrollY]);
 
-  // Hàm xử lý cuộn trái
+  useEffect(() => {
+    const observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          console.log("Banner intersecting:", entry.isIntersecting); // Debug
+          if (entry.isIntersecting) {
+            entry.target.classList.add("animate-fadeInUp");
+          }
+        });
+      },
+      { threshold: 0.1 }
+    );
+
+    if (bannerRef.current) {
+      observer.observe(bannerRef.current);
+    }
+
+    return () => {
+      if (bannerRef.current) {
+        observer.unobserve(bannerRef.current);
+      }
+    };
+  }, []);
+
   const scrollLeft = (index) => {
     const container = scrollRefs.current[index];
     if (container) {
@@ -62,7 +101,6 @@ const Home = () => {
     }
   };
 
-  // Hàm xử lý cuộn phải
   const scrollRight = (index) => {
     const container = scrollRefs.current[index];
     if (container) {
@@ -77,10 +115,37 @@ const Home = () => {
       <div className="min-h-screen bg-white">
         {/* Filter */}
         <div
-          className={`transition-all duration-300 sticky top-0 w-full h-16 bg-gray-800 z-10 ${
+          className={`transition-all duration-300 sticky top-0 w-full h-16 bg-gray-800 z-20 shadow-md ${
             showFilter ? "opacity-100 translate-y-0" : "opacity-0 -translate-y-full"
           }`}
-        />
+        >
+          <div className="h-full flex items-center justify-center space-x-4 overflow-x-auto px-4 scrollbar-hide">
+            {categories.map((cat) => (
+              <Link
+                key={cat.id}
+                to={`/category/${encodeURIComponent(cat.name)}`}
+                className="text-white px-4 py-2 rounded-full text-sm font-semibold transition-colors duration-200 bg-gray-600 hover:bg-gray-500"
+              >
+                {cat.name}
+              </Link>
+            ))}
+          </div>
+        </div>
+
+        {/* Banner */}
+        {/* Banner */}
+        <div className="relative w-full h-64 md:h-96">
+          <img
+            src={banner}
+            alt="Banner Image"
+            className="w-full h-full object-cover object-center"
+          />
+          <div className="absolute inset-0 bg-black/20 bg-opacity-30 flex items-center justify-center">
+            <h1 className="text-white text-3xl md:text-5xl font-bold text-center">
+              Discover Amazing Materials
+            </h1>
+          </div>
+        </div>
 
         {/* Materials by Category */}
         {materialsByCategory.length > 0 ? (
@@ -88,7 +153,6 @@ const Home = () => {
             <div key={category} className="px-4 py-6">
               <h2 className="text-2xl font-bold text-gray-800 mb-4">{category}</h2>
               <div className="relative flex items-center">
-                {/* Nút cuộn trái */}
                 <button
                   onClick={() => scrollLeft(catIndex)}
                   className="absolute left-0 z-10 p-2 h-full bg-transparent group cursor-pointer"
@@ -97,8 +161,6 @@ const Home = () => {
                   <FaChevronLeft className="text-gray-400 text-2xl group-hover:text-black transition-colors duration-200" />
                 </button>
 
-
-                {/* Container cuộn ngang */}
                 <div
                   ref={(el) => (scrollRefs.current[catIndex] = el)}
                   className="overflow-x-auto scrollbar-hide flex-1"
@@ -107,9 +169,7 @@ const Home = () => {
                   <div className="flex flex-shrink-0 gap-9">
                     {materials.length > 0 ? (
                       materials.map((material, index) => (
-                        <div
-                          key={material.id || `material-${index}`}
-                        >
+                        <div key={material.id || `material-${index}`}>
                           <MaterialCard material={material} />
                         </div>
                       ))
@@ -119,13 +179,12 @@ const Home = () => {
                   </div>
                 </div>
 
-                {/* Nút cuộn phải */}
                 <button
                   onClick={() => scrollRight(catIndex)}
                   className="absolute right-0 z-10 p-2 h-full bg-transparent group cursor-pointer"
                   aria-label="Scroll right"
                 >
-                  <FaChevronRight className="text-gray-400 text-2xl group-hover:text-black transition-colors duration-200"/>
+                  <FaChevronRight className="text-gray-400 text-2xl group-hover:text-black transition-colors duration-200" />
                 </button>
               </div>
             </div>

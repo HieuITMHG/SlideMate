@@ -59,7 +59,8 @@ const toggleSaveMaterial = async (req, res) => {
 };
 
 const getMyList = async (req, res) => {
-  try {
+  if (req.user.id) {
+    try {
     // Lấy user_id từ User dựa trên account ID
     const accountId = new mongoose.Types.ObjectId(req.user.id);
     const user = await User.findOne({ account: accountId });
@@ -87,6 +88,7 @@ const getMyList = async (req, res) => {
       message: 'Failed to fetch user lists',
       error: error.message,
     });
+  }
   }
 };
 
