@@ -163,6 +163,7 @@ const getMaterial = async (req, res) => {
   try {
     const { materialId } = req.params;
 
+    // Find the material
     const material = await Material.findById(materialId).populate({
       path: "user_id",
       populate: {
@@ -176,6 +177,32 @@ const getMaterial = async (req, res) => {
       return res.status(404).json({ message: "Material not found" });
     }
 
+    // Fetch category name
+    const category = await Category.findById(material.category_id);
+    if (!category) {
+      return res.status(404).json({ message: "Category not found" });
+    }
+
+    // Initialize is_saved as false
+    let is_saved = false;
+
+    // Check save status for authenticated users
+    if (req.user?.id) {
+      const accountId = new mongoose.Types.ObjectId(req.user.id);
+      const user = await User.findOne({ account: accountId });
+      if (user) {
+        const laterList = await List.findOne({ user_id: user._id });
+        if (laterList) {
+          const savedMaterial = await ListMaterial.findOne({
+            list_id: laterList._id,
+            material_id: material._id,
+          });
+          is_saved = !!savedMaterial;
+        }
+      }
+    }
+
+    // Format material to match getMaterialsByCategory
     const formattedMaterial = {
       id: material._id,
       title: material.title,
@@ -183,10 +210,11 @@ const getMaterial = async (req, res) => {
       original_file_path: material.original_file_path,
       pdf_version_path: material.pdf_version_path,
       thumbnail_path: material.thumbnail_path,
-      total_page: material.total_page,
-      total_view: material.total_view,
+      total_pages: material.total_pages, // Fixed: total_page -> total_pages
+      total_views: material.total_views, // Fixed: total_view -> total_views
+      total_likes: material.total_likes || 0, // Align with getMaterialsByCategory
       visibility: material.visibility,
-      category_name: material.category_name,
+      category_name: category.category_name, // Use Category model
       created_at: material.createdAt,
       updated_at: material.updatedAt,
       user: {
@@ -195,6 +223,7 @@ const getMaterial = async (req, res) => {
         username: material.user_id?.account?.username,
       },
       file_type: material.file_type_id,
+      is_saved, // Added is_saved
     };
 
     res.json({ material: formattedMaterial });
@@ -224,7 +253,7 @@ const getMaterialsByCategory = async (req, res) => {
       },
     });
 
-    // Initialize formatted materials with isSaved: false
+    // Initialize formatted materials with is_saved: false
     let formattedMaterials = materials.map((material) => ({
       id: material._id,
       title: material.title,
@@ -261,7 +290,7 @@ const getMaterialsByCategory = async (req, res) => {
           savedMaterialIds = savedMaterials.map(lm => lm.material_id.toString());
         }
 
-        // Update isSaved for authenticated user
+        // Update is_saved for authenticated user
         formattedMaterials = materials.map((material) => ({
           id: material._id,
           title: material.title,

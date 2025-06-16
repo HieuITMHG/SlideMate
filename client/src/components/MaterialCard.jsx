@@ -49,7 +49,7 @@ const MaterialCard = ({ material }) => {
     <div className="w-96 h-80 p-2.5 bg-white rounded-md overflow-hidden">
       <div className="relative w-full h-2/3 rounded-xl overflow-hidden group">
         <Link
-          to={`/material/${material._id}`}
+          to={`/material/${material.id}`}
           className="block w-full h-full bg-gray-200 flex justify-center items-center"
         >
           <img
@@ -87,12 +87,12 @@ const MaterialCard = ({ material }) => {
       </div>
 
       <div className="mt-2.5">
-        <Link to={`/material/${material._id}`}>
+        <Link to={`/material/${material.id}`}>
           <p className="font-bold text-2xl line-clamp-2">{material.title}</p>
         </Link>
       </div>
 
-      <Link to={`/user/${material.user._id}`} className="hover:underline font-semibold text-[#00809D]">
+      <Link to={`/user/${material.user.id}`} className="hover:underline font-semibold text-[#00809D]">
         <p>{material.user.username}</p>
       </Link>
       <p className="text-gray-600 text-sm">
