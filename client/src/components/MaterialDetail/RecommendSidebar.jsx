@@ -1,15 +1,16 @@
 import React, { useState, useEffect } from 'react';
+
 import RecommendItem from './RecommendItem';
 import { toast } from 'react-toastify';
-import { getMaterialsByCategory } from '../../apis/materialApis';
+import { getRelatedMaterials } from '../../apis/materialApis';
 
-const RecommendSidebar = () => {
+const RecommendSidebar = ({material_id}) => {
   const [recommendMaterial, setRecommendMaterial] = useState([]);
 
   useEffect(() => {
     const fetchMaterials = async () => {
       try {
-        const response = await getMaterialsByCategory('Technology');
+        const response = await getRelatedMaterials(material_id);
         setRecommendMaterial(response.materials || []);
       } catch (error) {
         console.error('Error fetching materials:', {
@@ -30,7 +31,7 @@ const RecommendSidebar = () => {
     };
 
     fetchMaterials();
-  }, []);
+  }, [material_id]);
 
   return (
     <div className="w-full max-w-[320px] p-2 bg-white">

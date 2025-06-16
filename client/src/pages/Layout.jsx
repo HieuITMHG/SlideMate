@@ -1,5 +1,7 @@
-import { Outlet, Link } from 'react-router-dom';
+// src/layouts/Layout.jsx
+import { Outlet, Link, useNavigate } from 'react-router-dom';
 import { useSelector } from 'react-redux';
+import { useState } from 'react';
 
 import logo from '@imgs/troll_face.png';
 import { FaSearch } from 'react-icons/fa';
@@ -9,6 +11,17 @@ import MainDropDown from '../components/MainDropDown';
 
 function Layout() {
   const user = useSelector((state) => state.user.userInfo);
+  const navigate = useNavigate();
+  const [searchQuery, setSearchQuery] = useState('');
+
+  const handleSearchSubmit = (e) => {
+    e.preventDefault();
+    if (searchQuery.trim()) {
+      navigate(`/search?query=${encodeURIComponent(searchQuery.trim())}`);
+      setSearchQuery(''); // Clear input after submission
+    }
+  };
+
   return (
     <div className="min-h-screen bg-gray-100">
       <nav className="bg-black text-white py-4 px-10 w-screen flex sticky justify-between top-0 z-[2000] overflow-visible">
@@ -25,15 +38,17 @@ function Layout() {
         </Link>
         <div className="flex gap-6 items-center">
           <div>
-            <form className="flex items-center">
+            <form className="flex items-center" onSubmit={handleSearchSubmit}>
               <input
                 type="text"
                 placeholder="Tìm kiếm..."
                 className="border border-white p-2 rounded-l-full border-r-0 h-12 w-80 text-white bg-black"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
               />
-              <div className="border p-2 rounded-r-full h-12 flex items-center">
+              <button type="submit" className="border p-2 rounded-r-full h-12 flex items-center">
                 <FaSearch className="text-gray-500" />
-              </div>
+              </button>
             </form>
           </div>
 
@@ -58,7 +73,7 @@ function Layout() {
               <div>
                 <Link to={'/register'}>
                   <div className="border border-white rounded-full h-10 p-2 w-24 font-bold text-center">
-                    Sign up
+                    Register
                   </div>
                 </Link>
               </div>

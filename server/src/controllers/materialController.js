@@ -15,6 +15,8 @@ const List = require("../models/List");
 const ListMaterial = require("../models/ListMaterial");
 const Report = require("../models/Report");
 const Like = require("../models/Like");
+const Tag = require("../models/Tag");
+const MaterialTag = require("../models/MaterialTag");
 
 const storage = multer.memoryStorage();
 const upload = multer({
@@ -79,7 +81,7 @@ async function uploadBufferToCloudinary(buffer, publicId, folder, resource_type 
 const uploadMaterial = [
   upload.single('file'),
   async (req, res) => {
-    const { title, description, visibility, category_name } = req.body;
+    const { title, description, visibility, category_id, tags } = req.body;
     const file = req.file;
 
     if (!file || !title || !visibility) {
@@ -91,11 +93,6 @@ const uploadMaterial = [
       const user = await User.findOne({ account: accountId });
       if (!user) return res.status(404).json({ message: 'User not found' });
       const userId = user._id;
-
-      let category = await Category.findOne({ category_name: category_name || 'General' });
-      if (!category) {
-        category = await new Category({ category_name: category_name || 'General' }).save();
-      }
 
       const mimeType = file.mimetype;
       let fileExtension, typeName, originalFormat;
@@ -121,40 +118,24 @@ const uploadMaterial = [
       const materialId = new mongoose.Types.ObjectId().toString();
       const folder = `SlideMate/${materialId}`;
 
-      // Upload original file
-      const originalPublicId = `original.${originalFormat}`; // Thêm đuôi
-      const originalFileUrl = await uploadBufferToCloudinary(
-        file.buffer,
-        originalPublicId,
-        folder,
-        'raw',
-        originalFormat
-      );
+      const originalPublicId = `original.${originalFormat}`;
+      const originalFileUrl = await uploadBufferToCloudinary(file.buffer, originalPublicId, folder, 'raw', originalFormat);
 
-      // Convert to PDF
       let pdfBuffer = file.buffer;
       if (fileExtension !== 'pdf') {
         pdfBuffer = await convertToPDF(file.buffer);
       }
-      const pdfPublicId = 'converted.pdf'; // Thêm đuôi .pdf
+
+      const pdfPublicId = 'converted.pdf';
       const pdfFileUrl = await uploadBufferToCloudinary(pdfBuffer, pdfPublicId, folder, 'raw', 'pdf');
 
-      // Extract PDF data
       const data = await pdf(pdfBuffer);
       const totalPages = data.numpages || 1;
 
-      // Generate thumbnail
       const thumbnailBuffer = await generateThumbnail(pdfBuffer);
-      const thumbnailPublicId = 'thumbnail.png'; // Thêm đuôi .png
-      const thumbnailUrl = await uploadBufferToCloudinary(
-        thumbnailBuffer,
-        thumbnailPublicId,
-        folder,
-        'image',
-        'png'
-      );
+      const thumbnailPublicId = 'thumbnail.png';
+      const thumbnailUrl = await uploadBufferToCloudinary(thumbnailBuffer, thumbnailPublicId, folder, 'image', 'png');
 
-      // Save to DB
       const material = await new Material({
         user_id: userId,
         title,
@@ -162,13 +143,32 @@ const uploadMaterial = [
         original_file_path: originalFileUrl,
         pdf_version_path: pdfFileUrl,
         thumbnail_path: thumbnailUrl,
-        total_page: totalPages,
-        total_view: 0,
+        total_pages: totalPages,
+        total_views: 0,
         total_likes: 0,
         visibility,
-        category_id: category._id,
+        category_id: new mongoose.Types.ObjectId(category_id),
         file_type_id: fileType._id,
       }).save();
+
+      // Xử lý tags
+      if (tags && Array.isArray(tags)) {
+        for (const tagName of tags) {
+          const trimmedTag = tagName.trim().toLowerCase();
+          if (!trimmedTag) continue;
+
+          let tag = await Tag.findOne({ tag_name: trimmedTag });
+
+          if (!tag) {
+            tag = await new Tag({ tag_name: trimmedTag }).save();
+          }
+
+          await new MaterialTag({
+            material_id: material._id,
+            tag_id: tag._id,
+          }).save();
+        }
+      }
 
       res.status(201).json({ message: 'Upload successful', material });
     } catch (error) {
@@ -177,9 +177,6 @@ const uploadMaterial = [
     }
   },
 ];
-
-module.exports = uploadMaterial;
-
 
 // Get material by ID
 const getMaterial = async (req, res) => {
@@ -282,7 +279,7 @@ const getMaterialsByCategory = async (req, res) => {
     }
 
     // Fetch materials for the category
-    const materials = await Material.find({ category_id: category._id }).populate({
+    const materials = await Material.find({ category_id: category._id, is_active: true, visibility: 'PUBLIC' }).populate({
       path: 'user_id',
       mode: 'User',
       populate: {
@@ -457,7 +454,6 @@ const report = async (req, res) => {
 const toggleLike = async (req, res) => {
   try {
     const { materialId } = req.params; // Lấy materialId từ URL
-    console.log(materialId);
     // Kiểm tra materialId hợp lệ
     if (!mongoose.Types.ObjectId.isValid(materialId)) {
       return res.status(400).json({ message: 'Invalid materialId' });
@@ -517,4 +513,339 @@ const toggleLike = async (req, res) => {
   }
 };
 
-module.exports = { uploadMaterial, getMaterial, getMaterialsByCategory, report, toggleLike };
+const searchMaterialsByTitle = async (req, res) => {
+  try {
+    const { query } = req.query; // Get search query from query parameters
+    // Validate query
+    if (!query || typeof query !== 'string' || query.trim() === '') {
+      return res.status(400).json({ message: 'Invalid or missing search query' });
+    }
+    
+    // Create case-insensitive regex for title search
+    const regex = new RegExp(query.trim(), 'i'); // 'i' for case-insensitive
+    // Find materials matching the title
+    const materials = await Material.find({ title: regex, is_active: true }).populate({
+      path: 'user_id',
+      populate: {
+        path: 'account',
+        model: 'Account',
+        select: 'username _id',
+      },
+    });
+
+    if (!materials || materials.length === 0) {
+      return res.status(404).json({ message: 'No materials found matching the query' });
+    }
+
+    // Fetch category names and format materials
+    const formattedMaterials = await Promise.all(
+      materials.map(async (material) => {
+        // Fetch category name
+        const category = await Category.findById(material.category_id);
+        const categoryName = category ? category.category_name : 'Unknown';
+
+        // Initialize is_saved and is_liked
+        let is_saved = false;
+        let is_liked = false;
+
+        // Check save and like status for authenticated users
+        if (req.user?.id) {
+          const accountId = new mongoose.Types.ObjectId(req.user.id);
+          const user = await User.findOne({ account: accountId });
+          if (user) {
+            // Check save status
+            const laterList = await List.findOne({ user_id: user._id });
+            if (laterList) {
+              const savedMaterial = await ListMaterial.findOne({
+                list_id: laterList._id,
+                material_id: material._id,
+              });
+              is_saved = !!savedMaterial;
+            }
+
+            // Check like status
+            const likedMaterial = await Like.findOne({
+              user_id: user._id,
+              material_id: material._id,
+            });
+            is_liked = !!likedMaterial;
+          }
+        }
+
+        // Format material to match getMaterial
+        return {
+          id: material._id,
+          title: material.title,
+          description: material.description,
+          original_file_path: material.original_file_path,
+          pdf_version_path: material.pdf_version_path,
+          thumbnail_path: material.thumbnail_path,
+          total_pages: material.total_pages,
+          total_views: material.total_views,
+          total_likes: material.total_likes || 0,
+          visibility: material.visibility,
+          category_name: categoryName,
+          created_at: material.createdAt,
+          updated_at: material.updatedAt,
+          user: {
+            userId: material.user_id?._id,
+            accountId: material.user_id?.account?._id,
+            username: material.user_id?.account?.username || 'Unknown',
+          },
+          file_type: material.file_type_id,
+          is_saved,
+          is_liked,
+        };
+      })
+    );
+
+    res.json({ materials: formattedMaterials });
+  } catch (error) {
+    console.error('Error searching materials:', error.stack);
+    res.status(500).json({ message: 'Failed to search materials', error: error.message });
+  }
+};
+
+const getRelatedMaterials = async (req, res) => {
+  const { id: materialId } = req.params;
+
+  if (!mongoose.Types.ObjectId.isValid(materialId)) {
+    return res.status(400).json({ message: 'Invalid material ID' });
+  }
+
+  try {
+    const material = await Material.findById(materialId);
+    if (!material) return res.status(404).json({ message: 'Material not found' });
+
+    // 1. Tìm các tag liên quan
+    const tags = await MaterialTag.find({ material_id: material._id }).lean();
+    const tagIds = tags.map((t) => t.tag_id);
+
+    // 2. Tìm tài liệu cùng tag (trừ chính nó)
+    const relatedByTags = await MaterialTag.aggregate([
+      {
+        $match: {
+          tag_id: { $in: tagIds },
+          material_id: { $ne: material._id },
+        },
+      },
+      {
+        $group: {
+          _id: '$material_id',
+          sharedTags: { $sum: 1 },
+        },
+      },
+      { $sort: { sharedTags: -1 } },
+      { $limit: 10 },
+    ]);
+
+    const relatedIds = relatedByTags.map((r) => r._id);
+
+    // 3. Lấy tài liệu liên quan từ DB
+    let relatedMaterials = await Material.find({
+      _id: { $in: relatedIds },
+      is_active: true,
+      visibility: 'PUBLIC',
+    })
+      .populate({
+        path: 'user_id',
+        populate: {
+          path: 'account',
+          model: 'Account',
+          select: 'username _id',
+        },
+      })
+      .lean();
+
+    // 4. Nếu chưa đủ thì thêm tài liệu cùng category (loại trừ chính nó và đã có)
+    if (relatedMaterials.length < 1) {
+      const excludeIds = [...relatedIds.map((id) => id.toString()), material._id.toString()];
+
+      const extraMaterials = await Material.find({
+        _id: { $nin: excludeIds },
+        category_id: material.category_id,
+        is_active: true,
+        visibility: 'PUBLIC',
+      })
+        .limit(10 - relatedMaterials.length)
+        .populate({
+          path: 'user_id',
+          populate: {
+            path: 'account',
+            model: 'Account',
+            select: 'username _id',
+          },
+        })
+        .lean();
+
+      relatedMaterials = [...relatedMaterials, ...extraMaterials];
+    }
+
+    // 5. Kiểm tra trạng thái like/save nếu đã đăng nhập
+    let savedMaterialIds = [];
+    let likedMaterialIds = [];
+
+    if (req.user?.id) {
+      const accountId = new mongoose.Types.ObjectId(req.user.id);
+      const user = await User.findOne({ account: accountId });
+
+      if (user) {
+        const laterList = await List.findOne({ user_id: user._id });
+        if (laterList) {
+          const savedMaterials = await ListMaterial.find({ list_id: laterList._id }).select('material_id');
+          savedMaterialIds = savedMaterials.map((lm) => lm.material_id.toString());
+        }
+
+        const likedMaterials = await Like.find({ user_id: user._id }).select('material_id');
+        likedMaterialIds = likedMaterials.map((like) => like.material_id.toString());
+      }
+    }
+
+    // 6. Format kết quả
+    const formattedMaterials = await Promise.all(
+      relatedMaterials.map(async (m) => {
+        const category = await Category.findById(m.category_id);
+        const categoryName = category ? category.category_name : 'Unknown';
+
+        return {
+          id: m._id,
+          title: m.title,
+          description: m.description,
+          original_file_path: m.original_file_path,
+          pdf_version_path: m.pdf_version_path,
+          thumbnail_path: m.thumbnail_path,
+          total_pages: m.total_pages,
+          total_views: m.total_views,
+          total_likes: m.total_likes || 0,
+          visibility: m.visibility,
+          category_name: categoryName,
+          created_at: m.createdAt,
+          updated_at: m.updatedAt,
+          user: {
+            userId: m.user_id?._id,
+            accountId: m.user_id?.account?._id,
+            username: m.user_id?.account?.username || 'Unknown',
+          },
+          file_type: m.file_type_id,
+          is_saved: savedMaterialIds.includes(m._id.toString()),
+          is_liked: likedMaterialIds.includes(m._id.toString()),
+        };
+      })
+    );
+
+    return res.json({ materials: formattedMaterials });
+  } catch (error) {
+    console.error('Error getting related materials:', error.stack || error.message);
+    return res.status(500).json({ message: 'Internal server error' });
+  }
+};
+
+const getTopViewedMaterialsByCategory = async (req, res) => {
+  const { name } = req.params; // hoặc req.query.name nếu bạn truyền qua query
+
+  try {
+    // 1. Tìm category theo tên
+    const category = await Category.findOne({ category_name: name });
+    if (!category) {
+      return res.status(404).json({ message: 'Category not found' });
+    }
+
+    // 2. Lấy 10 tài liệu có lượt xem cao nhất
+    let materials = await Material.find({
+      category_id: category._id,
+      is_active: true,
+      visibility: 'PUBLIC',
+    })
+      .sort({ total_views: -1 })
+      .limit(10)
+      .populate({
+        path: 'user_id',
+        populate: {
+          path: 'account',
+          model: 'Account',
+          select: 'username _id',
+        },
+      });
+
+    // 3. Chuẩn bị danh sách is_saved và is_liked
+    let savedMaterialIds = [];
+    let likedMaterialIds = [];
+
+    if (req.user?.id) {
+      const accountId = new mongoose.Types.ObjectId(req.user.id);
+      const user = await User.findOne({ account: accountId });
+      if (user) {
+        const laterList = await List.findOne({ user_id: user._id });
+        if (laterList) {
+          const savedMaterials = await ListMaterial.find({ list_id: laterList._id }).select('material_id');
+          savedMaterialIds = savedMaterials.map((lm) => lm.material_id.toString());
+        }
+
+        const likedMaterials = await Like.find({ user_id: user._id }).select('material_id');
+        likedMaterialIds = likedMaterials.map((like) => like.material_id.toString());
+      }
+    }
+
+    // 4. Format kết quả giống các hàm khác
+    const formattedMaterials = materials.map((material) => ({
+      id: material._id,
+      title: material.title,
+      description: material.description,
+      original_file_path: material.pdf_version_path,
+      pdf_version_path: material.pdf_version_path,
+      thumbnail_path: material.thumbnail_path,
+      total_pages: material.total_pages,
+      total_views: material.total_views,
+      total_likes: material.total_likes || 0,
+      visibility: material.visibility,
+      category_name: category.category_name,
+      created_at: material.createdAt,
+      updated_at: material.updatedAt,
+      user: {
+        userId: material.user_id?._id,
+        accountId: material.user_id?.account?._id,
+        username: material.user_id?.account?.username || 'Unknown',
+      },
+      file_type: material.file_type_id,
+      is_saved: savedMaterialIds.includes(material._id.toString()),
+      is_liked: likedMaterialIds.includes(material._id.toString()),
+    }));
+    console.log(formattedMaterials);
+
+    return res.json({ category: name, materials: formattedMaterials });
+  } catch (error) {
+    console.error('Error fetching top viewed materials:', error);
+    return res.status(500).json({ message: 'Internal server error' });
+  }
+};
+
+const increaseMaterialView = async (req, res) => {
+  const { id } = req.params;
+
+  try {
+    const material = await Material.findByIdAndUpdate(
+      id,
+      { $inc: { total_views: 1 } },
+      { new: true }
+    );
+
+    if (!material) {
+      return res.status(404).json({ message: "Material not found" });
+    }
+
+    res.status(200).json({ message: "View count increased", material });
+  } catch (error) {
+    res.status(500).json({ message: "Server error", error: error.message });
+  }
+};
+
+module.exports = { uploadMaterial, 
+  getMaterial, 
+  getMaterialsByCategory, 
+  report, 
+  toggleLike, 
+  searchMaterialsByTitle, 
+  getRelatedMaterials,
+  getTopViewedMaterialsByCategory,
+  increaseMaterialView,
+ };
