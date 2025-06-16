@@ -5,6 +5,7 @@ const Admin = require("../models/Admin");
 const Material = require("../models/Material");
 const Category = require("../models/Category");
 const Report = require("../models/Report");
+const FileType = require("../models/FileType");
 
 class AdminService {
 
@@ -202,7 +203,94 @@ class AdminService {
     */
 
     static async selectStatisticsData() {
+        const allMaterials = await Material
+            .find(
+                { is_active: true, visibility: "PUBLIC" }
+                , { 
+                    title: 1, 
+                    description:1,
+                    user_id: 1, 
+                    total_views: 1, 
+                    total_likes: 1, 
+                    createdAt: 1 ,
+                    pdf_version_path:1, 
+                    thumbnail_path:1
+                }
+            )
+            .populate({ path: "category_id", select: "category_name" })
+            .populate({ path: "file_type_id", select: "type_name" })
+            .populate({ path: "user_id", select: "account firstname lastname", populate: { path: "account", select: "username" } });
+        const materialsFiltered = allMaterials.filter(
+            (m) => (m.category_id && m.file_type_id && m.user_id && m.user_id.account));
 
+        const materialMapped = materialsFiltered.map(
+            (m) => ({
+                material_id: m._id,
+                material_title: m.title,
+                material_description: m.description,
+                material_thumnail_path: m.thumbnail_path,
+                material_pdf_path: m.pdf_version_path,
+                material_owner_id: m.user_id._id,
+                material_owner_name:
+                    (m.user_id.first_name && m.user_id.last_name)
+                        ? (m.user_id.first_name + m.user_id.last_name)
+                        : (m.user_id.account.username ? m.user_id.account.username : ""),
+                total_views: m.total_views,
+                total_likes:m.total_likes,
+                category_name: m.category_id.category_name,
+                file_type: m.file_type_id.type_name,
+                created_at: m.createdAt
+            })
+        );
+
+        const allCategories = await Category.find();
+        const allFileTypes = await FileType.find();
+
+        const categories = allCategories.reduce(
+            (cat, element)=>{
+                const key = element.category_name;
+                cat[key] = {
+                    name:key,
+                    total_materials:0,
+                    total_views:0,
+                    total_likes:0
+                };
+                return cat;
+            }, {}
+        );
+        // const categories = {};
+        const filetypes = allFileTypes.reduce(
+            (type, element)=>{
+                const key = element.type_name;
+                type[key] = {
+                    name: key,
+                    total_materials:0,
+                    total_views:0,
+                    total_likes:0
+                }
+                return type;
+            }, {}
+        );
+        materialMapped.forEach(element => {
+            // categories
+            const catKey = element.category_name;
+            categories[catKey].total_materials += 1;
+            categories[catKey].total_views += element.total_views;
+            categories[catKey].total_likes += element.total_likes;
+            //file_types
+            const typeKey = element.file_type;
+            filetypes[typeKey].total_materials += 1;
+            filetypes[typeKey].total_views += element.total_views;
+            filetypes[typeKey].total_likes += element.total_likes;
+
+        });
+        // return allMaterials;
+        // return materialsFiltered;
+        return {
+            materials: materialMapped,
+            categories:Object.values(categories),
+            filetypes:Object.values(filetypes)
+        }
     }
 }
 
