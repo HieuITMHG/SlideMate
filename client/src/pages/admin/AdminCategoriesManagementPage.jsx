@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import axios from 'axios';
+import api from '../../utils/api';
 
 const CategorisItem = ({ category }) => {
     return (
@@ -26,20 +26,35 @@ const AdminCategoriesManagementPage = () => {
 
     const fetchData = async () => {
         setIsLoading(true);
-        const fakeData = [];
-        for (let i = 0; i < 101; i++) {
-            fakeData.push({ id: i, name: `cat${i}` });
+        // const fakeData = [];
+        // for (let i = 0; i < 101; i++) {
+        //     fakeData.push({ id: i, name: `cat${i}` });
+        // }
+        // setCategories(fakeData);
+        try{
+            const response = await api.get("api/admin/categories");
+            console.log(JSON.stringify(response.data.data, null, 4));
+            setCategories(response.data.data);
+
+        }catch(error){
+            console.log(error);
         }
-        setCategories(fakeData);
         setIsLoading(false);
     }
 
-    const addNewCategory = () => {
+    const addNewCategory = async () => {
         const name = window.prompt("Nhap ten moi");
         if (name != null && name.trim() != "") {
             const confirm = window.confirm(`Bạn có chắc muốn thêm danh mục mới "${name}" không?`);
             if (confirm) {
-                console.log("add ", name);
+                try{
+                    const response = await api.post("api/admin/categories/new", {name:name});
+                    window.alert("Thanh cong!");
+                    await fetchData();
+                }catch(error){
+                    const message = error?.response?.data?.message || error.message || "Lỗi không xác định";
+    window.alert("Có lỗi xảy ra: " + message);
+                }
             }
 
         }
@@ -65,7 +80,7 @@ const AdminCategoriesManagementPage = () => {
 
 
                 <button className='p-2 m-2 bg-sky-500 rounded hover:bg-sky-300'
-                    onClick={() => addNewCategory()}
+                    onClick={addNewCategory}
                 >Thêm danh mục mới</button>
 
                 {/* Categories list */}
