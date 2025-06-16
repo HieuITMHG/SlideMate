@@ -21,4 +21,20 @@ const {
 router.get("/categories", getAllCaregories);
 router.post("/categories/new", createNewCategory);
 router.post("/categories/rename", renameCategory);
+
+const {
+    getAllPendingReports,
+    getAllHandledReports,
+    handleAllReportOfMaterial
+
+} = require("../controllers/admincontroller/ReportsManagementController");
+
+router.get("/reports/pending", getAllPendingReports);
+router.get("/reports/handled", getAllHandledReports)
+router.post("/reports/handle", handleAllReportOfMaterial)
+
+const {
+    getStatistic
+} = require("../controllers/admincontroller/StatisticsController");
+router.get("/statistics", getStatistic);
 module.exports = router;
