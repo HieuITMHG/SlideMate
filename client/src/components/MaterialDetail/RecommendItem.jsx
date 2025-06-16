@@ -83,10 +83,10 @@ const RecommendItem = ({ material }) => {
           <p className="font-bold text-base line-clamp-2">{material.title}</p>
         </Link>
         <Link
-          to={`/user/${material.user_id?._id}`}
+          to={`/user/${material.user?.userId}`}
           className="hover:underline font-semibold text-[#00809D] text-xs"
         >
-          <p>{material.user_id?.account?.username || 'Ẩn danh'}</p>
+          <p>{material.user?.username || 'Ẩn danh'}</p>
         </Link>
         <p className="text-gray-600 text-xs">
           {material.total_pages || 0} slides · {formatViews(material.total_views || 0)} views

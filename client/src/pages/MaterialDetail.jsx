@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { useParams } from 'react-router-dom';
+import { useParams, useNavigate } from 'react-router-dom'; // Added useNavigate
+import { useSelector } from 'react-redux'; // Added useSelector
 import { Worker, Viewer } from '@react-pdf-viewer/core';
 import { defaultLayoutPlugin } from '@react-pdf-viewer/default-layout';
 import { toast } from 'react-toastify';
@@ -14,6 +15,8 @@ import { toggleSaveMaterial } from '../apis/materialApis';
 
 const MaterialDetail = () => {
   const { id: materialId } = useParams();
+  const navigate = useNavigate(); // For redirecting to login
+  const userInfo = useSelector((state) => state.user.userInfo); // Get user from Redux
   const [material, setMaterial] = useState(null);
   const [pdfUrl, setPdfUrl] = useState(null);
   const [isSaved, setIsSaved] = useState(false);
@@ -26,6 +29,25 @@ const MaterialDetail = () => {
   const [newListName, setNewListName] = useState('');
   const [isDescriptionExpanded, setIsDescriptionExpanded] = useState(false); // State mới cho mô tả
 
+  useEffect(() => {
+    // Kiểm tra sessionStorage để xác định xem view đã được gửi trong phiên này chưa
+    const hasIncrementedView = sessionStorage.getItem(`view_incremented_${materialId}`);
+
+    if (!hasIncrementedView) {
+        const incrementView = async () => {
+        try {
+          await api.patch(`/api/materials/${materialId}/view`);
+          console.log(`View incremented for material ${materialId}`);
+          sessionStorage.setItem(`view_incremented_${materialId}`, 'true');
+        } catch (error) {
+          console.error("Failed to increment view:", error);
+        }
+      };
+
+      incrementView();
+    }
+  }, [materialId]);
+
   const defaultLayoutPluginInstance = defaultLayoutPlugin({
     renderToolbar: () => null,
   });
@@ -35,7 +57,6 @@ const MaterialDetail = () => {
     const fetchMaterial = async () => {
       try {
         const res = await api.get(`/api/materials/${materialId}`);
-        console.log(res.data.material);
         setMaterial(res.data.material);
         setPdfUrl(res.data.material.pdf_version_path);
         setIsSaved(res.data.material.is_saved || false);
@@ -68,15 +89,6 @@ const MaterialDetail = () => {
         setLists(filteredLists);
       } catch (err) {
         console.error('Lỗi khi tải danh sách:', err);
-        toast.error('Không thể tải danh sách!', {
-          position: 'top-right',
-          autoClose: 3000,
-          hideProgressBar: false,
-          closeOnClick: true,
-          pauseOnHover: true,
-          draggable: true,
-          theme: 'light',
-        });
       }
     };
     getMyList();
@@ -237,16 +249,29 @@ const MaterialDetail = () => {
 
   const handleDownload = async () => {
     try {
-      window.open(downloadUrl, '_blank');
-      toast.success('Đang tải xuống tài liệu!', {
-        position: 'top-right',
-        autoClose: 3000,
-        hideProgressBar: false,
-        closeOnClick: true,
-        pauseOnHover: true,
-        draggable: true,
-        theme: 'light',
-      });
+      if (userInfo) {
+        window.open(downloadUrl, '_blank');
+        toast.success('Đang tải xuống tài liệu!', {
+          position: 'top-right',
+          autoClose: 3000,
+          hideProgressBar: false,
+          closeOnClick: true,
+          pauseOnHover: true,
+          draggable: true,
+          theme: 'light',
+        });
+      } else {
+        navigate('/login', { replace: true });
+        toast.info('Vui lòng đăng nhập để tải tài liệu!', {
+          position: 'top-right',
+          autoClose: 3000,
+          hideProgressBar: false,
+          closeOnClick: true,
+          pauseOnHover: true,
+          draggable: true,
+          theme: 'light',
+        });
+      }
     } catch (err) {
       toast.error('Lỗi khi tải xuống tài liệu!', {
         position: 'top-right',
@@ -400,7 +425,7 @@ const MaterialDetail = () => {
         {/* Cột phải: RecommendSidebar */}
         <div className="lg:w-80 lg:min-w-[320px] lg:mt-4">
           <div className="sticky top-6 max-h-[calc(100vh-120px)] overflow-y-auto">
-            <RecommendSidebar />
+            <RecommendSidebar material_id={materialId}/>
           </div>
         </div>
       </div>
