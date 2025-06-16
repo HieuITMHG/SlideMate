@@ -1,13 +1,22 @@
 import { useState, useEffect } from 'react'
 import api from '../../utils/api';
 
-const CategorisItem = ({ category }) => {
+const CategorisItem = ({ category, onAction }) => {
     return (
         <div
-            className='grid grid-cols-2 gap-4 shadow h-10 text-center p-2 bg-white'
+            className='grid grid-cols-3 gap-4 shadow h-10 text-center p-2 bg-white '
         >
             <div>{category.id}</div>
+
             <div>{category.name}</div>
+            <div className="flex justify-center items-center">
+                <button
+                    className="bg-red-500 rounded w-1/2 hover:bg-red-300 hover:text-white "
+                    onClick={() => onAction(category)}
+                >
+                    Đổi tên
+                </button>
+            </div>
         </div>
     );
 }
@@ -31,12 +40,12 @@ const AdminCategoriesManagementPage = () => {
         //     fakeData.push({ id: i, name: `cat${i}` });
         // }
         // setCategories(fakeData);
-        try{
+        try {
             const response = await api.get("api/admin/categories");
             console.log(JSON.stringify(response.data.data, null, 4));
             setCategories(response.data.data);
 
-        }catch(error){
+        } catch (error) {
             console.log(error);
         }
         setIsLoading(false);
@@ -47,17 +56,38 @@ const AdminCategoriesManagementPage = () => {
         if (name != null && name.trim() != "") {
             const confirm = window.confirm(`Bạn có chắc muốn thêm danh mục mới "${name}" không?`);
             if (confirm) {
-                try{
-                    const response = await api.post("api/admin/categories/new", {name:name});
+                try {
+                    const response = await api.post("api/admin/categories/new", { name: name });
                     window.alert("Thanh cong!");
                     await fetchData();
-                }catch(error){
+                } catch (error) {
                     const message = error?.response?.data?.message || error.message || "Lỗi không xác định";
-    window.alert("Có lỗi xảy ra: " + message);
+                    window.alert("Có lỗi xảy ra: " + message);
                 }
             }
 
         }
+    }
+
+    const renameCategory = async (category) => {
+        const confirm = window.confirm(`Bạn có muốn đổi tên danh mục '${category.name}' ?`);
+        if (!confirm)
+            return;
+
+        const name = window.prompt("Nhập tên mới");
+        if (!name || name.trim() == "") {
+            return;
+        }
+
+        try {
+            const response = await api.post("api/admin/categories/rename", { id: category.id, new_name: name });
+            window.alert("Thanh cong!");
+            await fetchData();
+        } catch (error) {
+            const message = error?.response?.data?.message || error.message || "Lỗi không xác định";
+            window.alert("Có lỗi xảy ra: " + message);
+        }
+
     }
 
     useEffect(() => {
@@ -87,14 +117,15 @@ const AdminCategoriesManagementPage = () => {
 
                 <div className='p-1 m-5 '>
                     <div
-                        className='grid grid-cols-2 gap-4 shadow rounded-t-xl h-10 text-center p-2 font-bold bg-sky-500'
+                        className='grid grid-cols-3 gap-4 shadow rounded-t-xl h-10 text-center p-2 font-bold bg-sky-500'
                     >
                         <div>Mã danh mục</div>
                         <div>Tên danh mục</div>
+                        <div>Hành động</div>
                     </div>
                     {
                         categories.slice((currentPage - 1) * itemsPerPage, Math.min((currentPage) * itemsPerPage, categories.length)).map((item) => (
-                            <CategorisItem category={item} key={item.id} />
+                            <CategorisItem category={item} onAction={renameCategory} key={item.id} />
                         ))
                     }
                     <div
