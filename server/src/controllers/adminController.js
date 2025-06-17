@@ -11,6 +11,24 @@ class AdminController {
     }
 
     /*----------------------------------------------------
+                    CHECK AUTH 
+    -----------------------------------------------------*/
+    static async checkAuth(req, res) {
+        try {
+            if(! req?.user?.id)
+                res.status(500).json({ message: "Không tìm thấy token"});
+            const admin = await AdminService.getAdminByAccountId({ account_id: req.user.id });
+            if (!admin) {
+                throw new Error("Bạn không có quyền Admin!");
+            }
+            res.json({ message: "ok", data: []});
+        } catch (error) {
+            console.error("error:", error);
+            res.status(500).json({ message: "Bạn không có quyền Admin!" + error.message});
+        }
+    }
+
+    /*----------------------------------------------------
                     USERS 
     -----------------------------------------------------*/
     static async getAllUsers(req, res) {
