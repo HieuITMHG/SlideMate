@@ -11,9 +11,9 @@ const getMaterialsByCategory = async (categoryName) => {
     }
 };
 
-const getTopMaterialsByCategory = async (categoryName) => {
+const getTopMaterialsByCategory = async (category_id) => {
     try {
-        const response = await publicApi.get(`/api/materials/top-category/${categoryName}`);
+        const response = await publicApi.get(`/api/materials/top-category/${category_id}`);
         return response.data;
     } catch (error) {
         console.error('Error fetching materials by category:', error);

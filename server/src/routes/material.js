@@ -13,7 +13,7 @@ router.get('/:materialId', softauth, materialController.getMaterial);
 router.delete('/:materialId', auth, materialController.deleteMaterial);
 router.patch('/:materialId', auth, materialController.updateMaterial);
 router.patch('/:materialId/visibility', auth, materialController.toggleMaterialVisibility);
-router.get('/top-category/:name', softauth, materialController.getTopViewedMaterialsByCategory);
+router.get('/top-category/:category_id', softauth, materialController.getTopViewedMaterialsByCategory);
 router.get('/category/:categoryName', softauth, materialController.getMaterialsByCategory);
 router.post('/toggle-like/:materialId', auth, materialController.toggleLike);
 router.get('/:id/related', softauth, materialController.getRelatedMaterials);

@@ -35,7 +35,7 @@ const RecommendSidebar = ({material_id}) => {
 
   return (
     <div className="w-full max-w-[320px] p-2 bg-white">
-      <h3 className="text-xl font-bold mb-3 text-gray-800">Gợi ý tài liệu</h3>
+      <h3 className="text-xl font-bold mb-3 text-gray-800">Tài liệu liên quan</h3>
       {recommendMaterial.length > 0 ? (
         <div className="space-y-3">
           {recommendMaterial.map((material) => (

@@ -163,7 +163,7 @@ const MaterialUpload = () => {
             type="file"
             id="file"
             accept=".pdf,.doc,.docx,.ppt,.pptx"
-            onChange={handleFileChange}
+            onChange={handleFileChange} placeholder='Chọn tệp'
             className="w-full file:px-4 file:py-2 file:border-0 file:bg-blue-600 file:text-white file:rounded-md hover:file:bg-blue-700 cursor-pointer"
             required
           />

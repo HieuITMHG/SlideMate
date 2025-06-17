@@ -12,12 +12,6 @@ const VerifyEmailPage = () => {
         <p className="text-gray-600 mb-6">
           Vui lòng kiểm tra hộp thư đến hoặc thư rác và nhấp vào liên kết trong email để hoàn tất quá trình đăng ký.
         </p>
-        <button
-          onClick={() => window.location.reload()}
-          className="bg-blue-500 hover:bg-blue-600 text-white font-semibold py-2 px-4 rounded-xl transition"
-        >
-          Tôi đã xác thực
-        </button>
       </div>
     </div>
   );
