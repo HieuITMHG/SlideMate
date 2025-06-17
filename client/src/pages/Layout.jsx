@@ -3,7 +3,7 @@ import { Outlet, Link, useNavigate } from 'react-router-dom';
 import { useSelector } from 'react-redux';
 import { useState } from 'react';
 
-import logo from '@imgs/troll_face.png';
+import logo from '@imgs/logo.png';
 import { FaSearch } from 'react-icons/fa';
 import { GoUpload } from 'react-icons/go';
 
@@ -28,7 +28,7 @@ function Layout() {
         <Link to={'/'}>
           <div className="flex items-center">
             <div>
-              <img src={logo} alt="Logo" className="h-10" />
+              <img src={logo} alt="Logo" className="h-14" />
             </div>
             <div>
               <p className="text-2xl font-bold">SlideMate</p>

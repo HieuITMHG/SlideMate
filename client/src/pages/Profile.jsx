@@ -1,54 +1,358 @@
-
-import { useSelector } from 'react-redux';
+import { useSelector, useDispatch } from 'react-redux';
+import { useState, useEffect } from 'react';
+import { setUserInfo } from '../store/slices/userSlice';
+import api from '../utils/api';
+import { toast } from 'react-toastify';
 
 function Profile() {
+  const dispatch = useDispatch();
   const user = useSelector((state) => state.user.userInfo);
+  const [isChangePasswordOpen, setIsChangePasswordOpen] = useState(false);
+  const [isEditing, setIsEditing] = useState(false);
+  const [formData, setFormData] = useState({
+    first_name: user?.first_name || '',
+    last_name: user?.last_name || '',
+    username: user?.username || '',
+    email: user?.email || '',
+    phone: user?.phone || '',
+    organization: user?.organization || '',
+  });
+  const [passwordData, setPasswordData] = useState({
+    oldPassword: '',
+    newPassword: '',
+    confirmPassword: '',
+  });
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  // Gọi API /api/users/info khi component mount
+  useEffect(() => {
+    const fetchUserInfo = async () => {
+      try {
+        const response = await api.get('/api/users/info');
+        dispatch(setUserInfo(response.data.data));
+      } catch (error) {
+        console.error('Lỗi lấy thông tin người dùng:', error);
+        toast.error('Không thể tải thông tin người dùng', {
+          position: 'top-right',
+          autoClose: 3000,
+        });
+      }
+    };
+
+    fetchUserInfo();
+  }, [dispatch]);
+
+  // Cập nhật formData khi user thay đổi
+  useEffect(() => {
+    setFormData({
+      first_name: user?.first_name || '',
+      last_name: user?.last_name || '',
+      username: user?.username || '',
+      email: user?.email || '',
+      phone: user?.phone || '',
+      organization: user?.organization || '',
+    });
+  }, [user]);
+
+  const handleInputChange = (e) => {
+    const { name, value } = e.target;
+    setFormData((prev) => ({ ...prev, [name]: value }));
+  };
+
+  const handlePasswordChange = (e) => {
+    const { name, value } = e.target;
+    setPasswordData((prev) => ({ ...prev, [name]: value }));
+  };
+
+  const handleUpdateProfile = async (e) => {
+    e.preventDefault();
+    setIsSubmitting(true);
+
+    try {
+      const response = await api.put('/api/users/update', formData);
+      dispatch(setUserInfo(response.data.data));
+      toast.success('Cập nhật thông tin thành công', { position: 'top-right', autoClose: 3000 });
+      setIsEditing(false);
+    } catch (error) {
+      toast.error(error.response?.data?.message || 'Lỗi khi cập nhật thông tin', {
+        position: 'top-right',
+        autoClose: 3000,
+      });
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const handleChangePassword = async (e) => {
+    e.preventDefault();
+    const { oldPassword, newPassword, confirmPassword } = passwordData;
+
+    if (!oldPassword || !newPassword || !confirmPassword) {
+      toast.error('Vui lòng điền đầy đủ các trường', { position: 'top-right', autoClose: 3000 });
+      return;
+    }
+
+    if (newPassword !== confirmPassword) {
+      toast.error('Mật khẩu mới không khớp', { position: 'top-right', autoClose: 3000 });
+      return;
+    }
+
+    if (newPassword.length < 6) {
+      toast.error('Mật khẩu mới phải dài ít nhất 6 ký tự', { position: 'top-right', autoClose: 3000 });
+      return;
+    }
+
+    setIsSubmitting(true);
+    try {
+      await api.post('/api/users/change-password', { oldPassword, newPassword });
+      toast.success('Đổi mật khẩu thành công', { position: 'top-right', autoClose: 3000 });
+      setIsChangePasswordOpen(false);
+      setPasswordData({ oldPassword: '', newPassword: '', confirmPassword: '' });
+    } catch (error) {
+      toast.error(error.response?.data?.message || 'Lỗi khi đổi mật khẩu', {
+        position: 'top-right',
+        autoClose: 3000,
+      });
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
 
   return (
-    <div>
-   
-    <div style={{
-      height: "90vh",
-      display: "flex",
-      justifyContent: "center",
-      alignItems: "center",
-      backgroundColor: "#f5f5f5"
-    }}>
-      <div style={{
-        width: "400px",
-        height: "400px",
-        backgroundColor: "white",
-        borderRadius: "12px",
-        boxShadow: "0 4px 12px rgba(0,0,0,0.1)",
-        display: "flex",
-        flexDirection: "column",
-        alignItems: "center",
-        justifyContent: "center",
-        padding: "20px",
-        textAlign: "center"
-      }}>
-        <h1 style={{ alignSelf: "flex-start", marginTop: "-100px",fontWeight: "bold", color: "black",  alignSelf: "center",fontSize: "25px"  }}>Thông tin cá nhân</h1>
-        <img 
-        src="https://drive.google.com/thumbnail?id=1NWlJXANXot2_414zB7fHlu_JH8f40zJd&sz=w1000"
-         alt="ok"
-        style={{ width: "100px", height: "100px", borderRadius: "50%" ,marginTop:"20px",marginBottom:"20px"}}
-        />
-        
-        <p> <span style={{ color: "blue", fontWeight: "bold" }}>Tên người dùng:</span> {user.name}</p>
-        <p><span style={{ color: "blue" , fontWeight: "bold"}}>Email:</span>{user.email}</p>
-        <p><span style={{ color: "blue" , fontWeight: "bold"}}>Số điện thoại:</span>{user.phone}</p>
-        <p
-        style={{
-            alignSelf: "flex-start",
-            marginLeft: "20px",
-            marginTop: "20px",
-        }}
-        >
-        <span style={{ color: "blue", fontWeight: "bold" }}>Tag yêu thích:</span>
-        </p>
+    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-200 py-12 px-4 sm:px-6 lg:px-8">
+      <div className="max-w-4xl mx-auto">
+        <div className="bg-white shadow-2xl rounded-xl overflow-hidden">
+          {/* Header */}
+          <div className="bg-gradient-to-r from-teal-500 to-cyan-500 text-white p-8">
+            <h1 className="text-3xl font-bold">Quản lý thông tin cá nhân</h1>
+            <p className="text-sm opacity-90 mt-1">Cập nhật và xem thông tin tài khoản của bạn</p>
+          </div>
+
+          {/* Content */}
+          <form onSubmit={handleUpdateProfile} className="p-8">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div>
+                <label htmlFor="first_name" className="block text-sm font-medium text-gray-700">
+                  Tên
+                </label>
+                <input
+                  type="text"
+                  id="first_name"
+                  name="first_name"
+                  value={formData.first_name}
+                  onChange={handleInputChange}
+                  disabled={!isEditing}
+                  className={`mt-1 w-full border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-teal-500 ${
+                    isEditing ? 'bg-white' : 'bg-gray-100 cursor-not-allowed'
+                  }`}
+                />
+              </div>
+              <div>
+                <label htmlFor="last_name" className="block text-sm font-medium text-gray-700">
+                  Họ
+                </label>
+                <input
+                  type="text"
+                  id="last_name"
+                  name="last_name"
+                  value={formData.last_name}
+                  onChange={handleInputChange}
+                  disabled={!isEditing}
+                  className={`mt-1 w-full border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-teal-500 ${
+                    isEditing ? 'bg-white' : 'bg-gray-100 cursor-not-allowed'
+                  }`}
+                />
+              </div>
+              <div>
+                <label htmlFor="username" className="block text-sm font-medium text-gray-700">
+                  Tên người dùng
+                </label>
+                <input
+                  type="text"
+                  id="username"
+                  name="username"
+                  value={formData.username}
+                  onChange={handleInputChange}
+                  disabled={!isEditing}
+                  className={`mt-1 w-full border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-teal-500 ${
+                    isEditing ? 'bg-white' : 'bg-gray-100 cursor-not-allowed'
+                  }`}
+                />
+              </div>
+              <div>
+                <label htmlFor="email" className="block text-sm font-medium text-gray-700">
+                  Email
+                </label>
+                <input
+                  type="email"
+                  id="email"
+                  name="email"
+                  value={formData.email}
+                  onChange={handleInputChange}
+                  disabled={!isEditing}
+                  className={`mt-1 w-full border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-teal-500 ${
+                    isEditing ? 'bg-white' : 'bg-gray-100 cursor-not-allowed'
+                  }`}
+                />
+              </div>
+              <div>
+                <label htmlFor="phone" className="block text-sm font-medium text-gray-700">
+                  Số điện thoại
+                </label>
+                <input
+                  type="text"
+                  id="phone"
+                  name="phone"
+                  value={formData.phone}
+                  onChange={handleInputChange}
+                  disabled={!isEditing}
+                  className={`mt-1 w-full border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-teal-500 ${
+                    isEditing ? 'bg-white' : 'bg-gray-100 cursor-not-allowed'
+                  }`}
+                />
+              </div>
+              <div>
+                <label htmlFor="organization" className="block text-sm font-medium text-gray-700">
+                  Tổ chức
+                </label>
+                <input
+                  type="text"
+                  id="organization"
+                  name="organization"
+                  value={formData.organization}
+                  onChange={handleInputChange}
+                  disabled={!isEditing}
+                  className={`mt-1 w-full border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-teal-500 ${
+                    isEditing ? 'bg-white' : 'bg-gray-100 cursor-not-allowed'
+                  }`}
+                />
+              </div>
+            </div>
+
+            <div className="mt-8 flex gap-4">
+              {isEditing ? (
+                <>
+                  <button
+                    type="submit"
+                    disabled={isSubmitting}
+                    className={`px-6 py-2 bg-teal-600 text-white rounded-lg hover:bg-teal-700 transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-teal-500 ${
+                      isSubmitting ? 'opacity-50 cursor-not-allowed' : ''
+                    }`}
+                  >
+                    {isSubmitting ? 'Đang lưu...' : 'Lưu thay đổi'}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setIsEditing(false);
+                      setFormData({
+                        first_name: user?.first_name || '',
+                        last_name: user?.last_name || '',
+                        username: user?.username || '',
+                        email: user?.email || '',
+                        phone: user?.phone || '',
+                        organization: user?.organization || '',
+                      });
+                    }}
+                    className="px-6 py-2 text-gray-600 hover:text-gray-800"
+                  >
+                    Hủy
+                  </button>
+                </>
+              ) : (
+                <button
+                  type="button"
+                  onClick={() => setIsEditing(true)}
+                  className="px-6 py-2 bg-teal-600 text-white rounded-lg hover:bg-teal-700 transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-teal-500"
+                >
+                  Chỉnh sửa
+                </button>
+              )}
+              <button
+                type="button"
+                onClick={() => setIsChangePasswordOpen(true)}
+                className="px-6 py-2 bg-amber-500 text-white rounded-lg hover:bg-amber-600 transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-amber-500"
+              >
+                Đổi mật khẩu
+              </button>
+            </div>
+          </form>
+        </div>
       </div>
-      
-    </div>
+
+      {/* Popup Đổi Mật Khẩu */}
+      {isChangePasswordOpen && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-xl p-8 w-full max-w-md shadow-2xl">
+            <h2 className="text-2xl font-semibold text-gray-800 mb-6">Đổi mật khẩu</h2>
+            <form onSubmit={handleChangePassword}>
+              <div className="mb-4">
+                <label htmlFor="oldPassword" className="block text-sm font-medium text-gray-700">
+                  Mật khẩu cũ
+                </label>
+                <input
+                  type="password"
+                  id="oldPassword"
+                  name="oldPassword"
+                  value={passwordData.oldPassword}
+                  onChange={handlePasswordChange}
+                  className="mt-1 w-full border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-teal-500"
+                  required
+                />
+              </div>
+              <div className="mb-4">
+                <label htmlFor="newPassword" className="block text-sm font-medium text-gray-700">
+                  Mật khẩu mới
+                </label>
+                <input
+                  type="password"
+                  id="newPassword"
+                  name="newPassword"
+                  value={passwordData.newPassword}
+                  onChange={handlePasswordChange}
+                  className="mt-1 w-full border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-teal-500"
+                  required
+                />
+              </div>
+              <div className="mb-6">
+                <label htmlFor="confirmPassword" className="block text-sm font-medium text-gray-700">
+                  Xác nhận mật khẩu mới
+                </label>
+                <input
+                  type="password"
+                  id="confirmPassword"
+                  name="confirmPassword"
+                  value={passwordData.confirmPassword}
+                  onChange={handlePasswordChange}
+                  className="mt-1 w-full border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-teal-500"
+                  required
+                />
+              </div>
+              <div className="flex justify-end gap-3">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setIsChangePasswordOpen(false);
+                    setPasswordData({ oldPassword: '', newPassword: '', confirmPassword: '' });
+                  }}
+                  className="px-4 py-2 text-gray-600 hover:text-gray-800 rounded-lg hover:bg-gray-100 transition-colors duration-200"
+                >
+                  Hủy
+                </button>
+                <button
+                  type="submit"
+                  disabled={isSubmitting}
+                  className={`px-4 py-2 bg-teal-600 text-white rounded-lg hover:bg-teal-700 transition-colors duration-200 ${
+                    isSubmitting ? 'opacity-50 cursor-not-allowed' : ''
+                  }`}
+                >
+                  {isSubmitting ? 'Đang xử lý...' : 'Lưu'}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

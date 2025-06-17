@@ -5,7 +5,7 @@ import { ToastContainer } from "react-toastify";
 
 // Lazy load pages and components
 const Layout = lazy(() => import('./pages/Layout'));
-const Save = lazy(() => import('./pages/Save'));
+const Saved = lazy(() => import('./pages/Saved'));
 const Home = lazy(() => import('./pages/Home'));
 const Register = lazy(() => import('./pages/Register'));
 const VerifyEmailPage = lazy(() => import('./pages/VerifyMailPage'));
@@ -14,12 +14,13 @@ const Profile = lazy(() => import('./pages/Profile'));
 const VerifiedSuccess = lazy(() => import('./pages/VerifiedSuccess'));
 const MaterialUpload = lazy(() => import('./pages/MaterialUpload'));
 const MaterialDetail = lazy(() => import('./pages/MaterialDetail'));
+const MyUploads = lazy(() => import('./pages/MyUploads'));
 const ProtectedRoute = lazy(() => import('./components/ProtectedRoute'));
 const ForgotPassword = lazy(() => import('./pages/ForgotPassword'));
 const ResetPassword = lazy(() => import('./pages/ResetPassword'));
 const CategoryPage = lazy(() => import ('./pages/CategoryPage'));
 const SearchResultsPage = lazy(() => import ('./pages/SearchResultsPage'));
-
+const ListDetail = lazy(() => import ('./pages/ListDetail'));
 
 // admin page
 const AdminLayout = lazy(() => import ('./pages/admin/AdminLayout'))
@@ -53,7 +54,16 @@ function App() {
         <Route path="/reset-password" element={<ResetPassword />} />
 
         <Route element={<Layout />}>
-          <Route path="/save" index element={ <Save/>} />
+          <Route path='/list/:listId' element= {
+            <ProtectedRoute>
+              <ListDetail />
+            </ProtectedRoute>
+          } />
+          <Route path="/saved" index element={ 
+            <ProtectedRoute>
+              <Saved/>
+            </ProtectedRoute>
+            } />
           <Route index element={<Home />} />
           <Route
             path="/profile"
@@ -63,13 +73,22 @@ function App() {
               </ProtectedRoute>
             }
           />
+
           <Route
-          path="/upload"
-          element={
-            <ProtectedRoute>
-              <MaterialUpload />
-            </ProtectedRoute>
-          }
+            path="/upload"
+            element={
+              <ProtectedRoute>
+                <MaterialUpload />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/my-uploads"
+            element={
+              <ProtectedRoute>
+                <MyUploads />
+              </ProtectedRoute>
+            }
           />
           <Route path="/category/:name" element={<CategoryPage />} />
           <Route path="/material/:id" element={<MaterialDetail />} />
