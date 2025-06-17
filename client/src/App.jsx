@@ -14,6 +14,7 @@ const Profile = lazy(() => import('./pages/Profile'));
 const VerifiedSuccess = lazy(() => import('./pages/VerifiedSuccess'));
 const MaterialUpload = lazy(() => import('./pages/MaterialUpload'));
 const MaterialDetail = lazy(() => import('./pages/MaterialDetail'));
+const MyUploads = lazy(() => import('./pages/MyUploads'));
 const ProtectedRoute = lazy(() => import('./components/ProtectedRoute'));
 const ForgotPassword = lazy(() => import('./pages/ForgotPassword'));
 const ResetPassword = lazy(() => import('./pages/ResetPassword'));
@@ -74,12 +75,20 @@ function App() {
           />
 
           <Route
-          path="/upload"
-          element={
-            <ProtectedRoute>
-              <MaterialUpload />
-            </ProtectedRoute>
-          }
+            path="/upload"
+            element={
+              <ProtectedRoute>
+                <MaterialUpload />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/my-uploads"
+            element={
+              <ProtectedRoute>
+                <MyUploads />
+              </ProtectedRoute>
+            }
           />
           <Route path="/category/:name" element={<CategoryPage />} />
           <Route path="/material/:id" element={<MaterialDetail />} />

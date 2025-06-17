@@ -838,7 +838,272 @@ const increaseMaterialView = async (req, res) => {
   }
 };
 
-module.exports = { uploadMaterial, 
+const getUserUploadedMaterials = async (req, res) => {
+  try {
+    const accountId = new mongoose.Types.ObjectId(req.user.id);
+    const user = await User.findOne({ account: accountId });
+    if (!user) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+
+    const materials = await Material.find({ 
+      user_id: user._id,
+      is_active: true 
+    })
+    .populate('category_id', 'category_name')
+    .populate('file_type_id', 'type_name')
+    .sort({ createdAt: -1 });
+
+    // Get tags for each material
+    const materialsWithTags = await Promise.all(materials.map(async (material) => {
+      const materialTags = await MaterialTag.find({ material_id: material._id })
+        .populate('tag_id', 'tag_name')
+        .lean();
+      
+      const tags = materialTags.map(mt => mt.tag_id.tag_name);
+
+      return {
+        id: material._id,
+        title: material.title,
+        description: material.description,
+        original_file_path: material.original_file_path,
+        pdf_version_path: material.pdf_version_path,
+        thumbnail_path: material.thumbnail_path,
+        total_pages: material.total_pages,
+        total_views: material.total_views,
+        total_likes: material.total_likes,
+        visibility: material.visibility,
+        category_name: material.category_id.category_name,
+        file_type: material.file_type_id.type_name,
+        created_at: material.createdAt,
+        updated_at: material.updatedAt,
+        tags: tags
+      };
+    }));
+
+    res.json(materialsWithTags);
+  } catch (error) {
+    console.error('Error getting user materials:', error);
+    res.status(500).json({ message: 'Server error', error: error.message });
+  }
+};
+
+const deleteMaterial = async (req, res) => {
+  const session = await mongoose.startSession();
+  
+  try {
+    session.startTransaction();
+
+    const { materialId } = req.params;
+    const accountId = new mongoose.Types.ObjectId(req.user.id);
+
+    // Ensure materialId is valid
+    if (!mongoose.Types.ObjectId.isValid(materialId)) {
+      await session.abortTransaction();
+      session.endSession();
+      return res.status(400).json({ message: 'Invalid material ID' });
+    }
+
+    const user = await User.findOne({ account: accountId }).session(session);
+    
+    if (!user) {
+      await session.abortTransaction();
+      session.endSession();
+      return res.status(404).json({ message: 'User not found' });
+    }
+
+    const material = await Material.findOne({ 
+      _id: materialId,
+      user_id: user._id 
+    }).session(session);
+
+    if (!material) {
+      await session.abortTransaction();
+      session.endSession();
+      return res.status(404).json({ message: 'Material not found or you do not have permission to delete it' });
+    }
+
+    // Delete all related records within the transaction
+    await Promise.all([
+      Like.deleteMany({ material_id: material._id }, { session }),
+      ListMaterial.deleteMany({ material_id: material._id }, { session }),
+      MaterialTag.deleteMany({ material_id: material._id }, { session }),
+      Material.findByIdAndUpdate(
+        material._id,
+        { is_active: false },
+        { session, new: true } // Ensure session is passed and return updated document
+      )
+    ]);
+
+    // Commit the transaction
+    await session.commitTransaction();
+    res.json({ message: 'Material deleted successfully' });
+  } catch (error) {
+    // Handle transient transaction errors
+    if (error.errorLabels?.includes('TransientTransactionError')) {
+      console.warn('Transient transaction error, consider retrying:', error.message);
+      // Optionally implement retry logic here (see below)
+    }
+
+    await session.abortTransaction();
+    console.error('Error deleting material:', error);
+    res.status(500).json({ 
+      message: 'Error deleting material',
+      error: error.message 
+    });
+  } finally {
+    session.endSession();
+  }
+};
+
+const updateMaterial = async (req, res) => {
+  try {
+    const { materialId } = req.params;
+    const { title, description, visibility, tags } = req.body;
+    const accountId = new mongoose.Types.ObjectId(req.user.id);
+    const user = await User.findOne({ account: accountId });
+    
+    if (!user) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+
+    const material = await Material.findOne({ 
+      _id: materialId,
+      user_id: user._id 
+    });
+
+    if (!material) {
+      return res.status(404).json({ message: 'Material not found or you do not have permission to edit it' });
+    }
+
+    // Update basic information (excluding category)
+    if (title) material.title = title;
+    if (description) material.description = description;
+    if (visibility) material.visibility = visibility;
+
+    // Update tags if provided
+    if (tags && Array.isArray(tags)) {
+      // Remove existing tags
+      await MaterialTag.deleteMany({ material_id: material._id });
+
+      // Add new tags
+      for (const tagName of tags) {
+        const trimmedTag = tagName.trim().toLowerCase();
+        if (!trimmedTag) continue;
+
+        let tag = await Tag.findOne({ tag_name: trimmedTag });
+        if (!tag) {
+          tag = await new Tag({ tag_name: trimmedTag }).save();
+        }
+
+        await new MaterialTag({
+          material_id: material._id,
+          tag_id: tag._id,
+        }).save();
+      }
+    }
+
+    await material.save();
+
+    // Get updated material with populated fields
+    const updatedMaterial = await Material.findById(material._id)
+      .populate('category_id', 'category_name')
+      .populate('file_type_id', 'type_name');
+
+    res.json({ 
+      message: 'Material updated successfully',
+      material: updatedMaterial
+    });
+  } catch (error) {
+    console.error('Error updating material:', error);
+    res.status(500).json({ message: 'Server error', error: error.message });
+  }
+};
+
+const toggleMaterialVisibility = async (req, res) => {
+  try {
+    const { materialId } = req.params;
+    const accountId = new mongoose.Types.ObjectId(req.user.id);
+    const user = await User.findOne({ account: accountId });
+    
+    if (!user) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+
+    const material = await Material.findOne({ 
+      _id: materialId,
+      user_id: user._id 
+    });
+
+    if (!material) {
+      return res.status(404).json({ message: 'Material not found or you do not have permission to modify it' });
+    }
+
+    // Toggle visibility
+    material.visibility = material.visibility === 'PUBLIC' ? 'PRIVATE' : 'PUBLIC';
+    await material.save();
+
+    res.json({ 
+      message: 'Visibility updated successfully',
+      visibility: material.visibility
+    });
+  } catch (error) {
+    console.error('Error toggling material visibility:', error);
+    res.status(500).json({ message: 'Server error', error: error.message });
+  }
+};
+
+// Get all materials uploaded by a specific user
+const getUserMaterials = async (req, res) => {
+  try {
+    console.log('getUserMaterials called with userId:', req.params.userId);
+    
+    const userId = req.params.userId;
+    const user = await User.findById(userId);
+    if (!user) {
+      console.log('User not found:', userId);
+      return res.status(404).json({ message: 'User not found' });
+    }
+
+    console.log('Found user:', user.username);
+
+    const materials = await Material.find({ user_id: userId, is_deleted: false })
+      .populate('category_id', 'name')
+      .populate('user_id', 'username')
+      .lean();
+
+    console.log('Found materials:', materials.length);
+
+    // Get tags for each material
+    const materialsWithTags = await Promise.all(materials.map(async (material) => {
+      console.log('Processing material:', material._id);
+      
+      const materialTags = await MaterialTag.find({ material_id: material._id })
+        .populate('tag_id', 'name')
+        .lean();
+      
+      console.log('Found material tags:', materialTags.length, 'for material:', material._id);
+      console.log('Material tags details:', JSON.stringify(materialTags, null, 2));
+
+      const tags = materialTags.map(mt => mt.tag_id.name);
+      console.log('Extracted tag names:', tags);
+
+      return {
+        ...material,
+        tags: tags
+      };
+    }));
+
+    console.log('Final materials with tags:', JSON.stringify(materialsWithTags, null, 2));
+    res.json(materialsWithTags);
+  } catch (error) {
+    console.error('Error in getUserMaterials:', error);
+    res.status(500).json({ message: 'Error fetching user materials' });
+  }
+};
+
+module.exports = { 
+  uploadMaterial, 
   getMaterial, 
   getMaterialsByCategory, 
   report, 
@@ -847,4 +1112,9 @@ module.exports = { uploadMaterial,
   getRelatedMaterials,
   getTopViewedMaterialsByCategory,
   increaseMaterialView,
- };
+  getUserUploadedMaterials,
+  deleteMaterial,
+  updateMaterial,
+  toggleMaterialVisibility,
+  getUserMaterials
+};

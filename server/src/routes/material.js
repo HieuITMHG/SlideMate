@@ -6,9 +6,13 @@ const softauth = require('../middleware/softauth');
 
 // Upload material
 router.get('/search', softauth ,materialController.searchMaterialsByTitle);
+router.get('/my-uploads', auth, materialController.getUserUploadedMaterials);
 router.post('/upload', auth, materialController.uploadMaterial);
 router.post('/report', auth, materialController.report);
-router.get('/:materialId', softauth, materialController.getMaterial); 
+router.get('/:materialId', softauth, materialController.getMaterial);
+router.delete('/:materialId', auth, materialController.deleteMaterial);
+router.patch('/:materialId', auth, materialController.updateMaterial);
+router.patch('/:materialId/visibility', auth, materialController.toggleMaterialVisibility);
 router.get('/top-category/:name', softauth, materialController.getTopViewedMaterialsByCategory);
 router.get('/category/:categoryName', softauth, materialController.getMaterialsByCategory);
 router.post('/toggle-like/:materialId', auth, materialController.toggleLike);

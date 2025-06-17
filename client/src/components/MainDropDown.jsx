@@ -3,7 +3,12 @@ import { clearUserInfo } from "../store/slices/userSlice";
 import { useState, useEffect, useRef } from "react";
 import defaultAvatar from "@imgs/defaultAvatar.png";
 import api from "../utils/api";
-import { UserIcon, BookmarkIcon, CogIcon, ArrowRightOnRectangleIcon } from "@heroicons/react/24/outline";
+import {
+  UserIcon,
+  BookmarkIcon,
+  ArrowUpTrayIcon,
+  ArrowRightOnRectangleIcon,
+} from "@heroicons/react/24/outline";
 
 const MainDropDown = () => {
   const user = useSelector((state) => state.user.userInfo);
@@ -26,13 +31,16 @@ const MainDropDown = () => {
     setIsOpen((prev) => !prev);
   };
 
-  const saveMet = async () => {
+  const goToSaved = () => {
     window.location.href = "/saved";
   };
 
-  const Profile = async () => {
-    console.log("hehepp");
+  const goToProfile = () => {
     window.location.href = "/profile";
+  };
+
+  const goToMyUpload = () => {
+    window.location.href = "/my-uploads";
   };
 
   const handleLogout = async () => {
@@ -73,23 +81,24 @@ const MainDropDown = () => {
           <ul className="py-2">
             <li
               className="flex items-center px-4 py-2 text-gray-700 hover:bg-blue-50 hover:text-blue-600 cursor-pointer transition-colors duration-150"
-              onClick={Profile}
+              onClick={goToProfile}
             >
               <UserIcon className="h-5 w-5 mr-3" />
               Profile
             </li>
             <li
               className="flex items-center px-4 py-2 text-gray-700 hover:bg-blue-50 hover:text-blue-600 cursor-pointer transition-colors duration-150"
-              onClick={saveMet}
+              onClick={goToSaved}
             >
               <BookmarkIcon className="h-5 w-5 mr-3" />
               Saved
             </li>
             <li
               className="flex items-center px-4 py-2 text-gray-700 hover:bg-blue-50 hover:text-blue-600 cursor-pointer transition-colors duration-150"
+              onClick={goToMyUpload}
             >
-              <CogIcon className="h-5 w-5 mr-3" />
-              Settings
+              <ArrowUpTrayIcon className="h-5 w-5 mr-3" />
+              My Upload
             </li>
             <li
               className="flex items-center px-4 py-2 text-red-600 hover:bg-red-50 hover:text-red-700 cursor-pointer transition-colors duration-150"
