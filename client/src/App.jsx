@@ -17,6 +17,7 @@ const MaterialDetail = lazy(() => import('./pages/MaterialDetail'));
 const ProtectedRoute = lazy(() => import('./components/ProtectedRoute'));
 const ForgotPassword = lazy(() => import('./pages/ForgotPassword'));
 const ResetPassword = lazy(() => import('./pages/ResetPassword'));
+const ChangePass = lazy(() => import('./pages/ChangePass'));
 
 // admin page
 const AdminLayout = lazy(() => import ('./pages/admin/AdminLayout'))
@@ -60,6 +61,14 @@ function App() {
               </ProtectedRoute>
             }
           />
+
+          <Route
+            path="/change-passwork"
+            element={
+                <ChangePass/>
+            }
+          />
+
           <Route
           path="/upload"
           element={
