@@ -13,7 +13,7 @@ const Home = () => {
   const [lastScrollY, setLastScrollY] = useState(0);
   const [isLoading, setIsLoading] = useState(true);
   const [materialsByCategory, setMaterialsByCategory] = useState([]);
-  const lst_category = ["Technology", "Literature", "Biology"];
+  const lst_category = ["Công nghệ", "Văn học", "Sinh học"];
   const scrollRefs = useRef([]);
   const bannerRef = useRef(null);
 
@@ -112,7 +112,7 @@ const Home = () => {
     return <div>Loading...</div>;
   } else {
     return (
-      <div className="min-h-screen bg-white">
+      <div className="min-h-screen bg-gray-100">
         {/* Filter */}
         <div
           className={`transition-all duration-300 sticky top-0 w-full h-16 bg-gray-800 z-20 shadow-md ${
@@ -142,7 +142,7 @@ const Home = () => {
           />
           <div className="absolute inset-0 bg-black/20 bg-opacity-30 flex items-center justify-center">
             <h1 className="text-white text-3xl md:text-5xl font-bold text-center">
-              Discover Amazing Materials
+              Khám phá kho tài liệu tuyệt vời!
             </h1>
           </div>
         </div>
@@ -151,7 +151,7 @@ const Home = () => {
         {materialsByCategory.length > 0 ? (
           materialsByCategory.map(({ category, materials }, catIndex) => (
             <div key={category} className="px-4 py-6">
-              <h2 className="text-2xl font-bold text-gray-800 mb-4">{category}</h2>
+              <h2 className="text-2xl font-bold text-gray-800 mb-4">Phổ biến nhất trong lĩnh vực {category}</h2>
               <div className="relative flex items-center">
                 <button
                   onClick={() => scrollLeft(catIndex)}

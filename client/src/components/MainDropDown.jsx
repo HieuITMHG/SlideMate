@@ -84,28 +84,28 @@ const MainDropDown = () => {
               onClick={goToProfile}
             >
               <UserIcon className="h-5 w-5 mr-3" />
-              Profile
+              Hồ sơ
             </li>
             <li
               className="flex items-center px-4 py-2 text-gray-700 hover:bg-blue-50 hover:text-blue-600 cursor-pointer transition-colors duration-150"
               onClick={goToSaved}
             >
               <BookmarkIcon className="h-5 w-5 mr-3" />
-              Saved
+              Đã lưu
             </li>
             <li
               className="flex items-center px-4 py-2 text-gray-700 hover:bg-blue-50 hover:text-blue-600 cursor-pointer transition-colors duration-150"
               onClick={goToMyUpload}
             >
               <ArrowUpTrayIcon className="h-5 w-5 mr-3" />
-              My Upload
+              Tài liệu của tôi
             </li>
             <li
               className="flex items-center px-4 py-2 text-red-600 hover:bg-red-50 hover:text-red-700 cursor-pointer transition-colors duration-150"
               onClick={handleLogout}
             >
               <ArrowRightOnRectangleIcon className="h-5 w-5 mr-3" />
-              Logout
+              Đăng xuất
             </li>
           </ul>
         </div>

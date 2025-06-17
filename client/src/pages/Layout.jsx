@@ -32,7 +32,7 @@ function Layout() {
             </div>
             <div>
               <p className="text-2xl font-bold">SlideMate</p>
-              <p className="text-[10px]">Tài liệu của mày là của bố</p>
+              <p className="text-[10px]">Tài liệu xịn, vịn là mê!</p>
             </div>
           </div>
         </Link>
@@ -55,7 +55,7 @@ function Layout() {
           <div>
             <Link to={'/upload'} className="flex items-center text-2xl font-bold">
               <GoUpload className="h-8" />
-              <p>Upload</p>
+              <p>Tải lên</p>
             </Link>
           </div>
 

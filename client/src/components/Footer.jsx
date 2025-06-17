@@ -9,7 +9,7 @@ const Footer = () => {
         <div>
           <h2 className="text-xl font-bold mb-4">SlideMate</h2>
           <p className="text-sm text-gray-400">
-            Đây là đoạn giới thiệu ngắn về bạn hoặc dự án. Bạn có thể cập nhật địa chỉ, mô tả, hoặc bất cứ điều gì ở đây.
+            SlideMate – Nền tảng chia sẻ tài liệu hàng đầu. Dễ dàng tìm kiếm, tải lên và chia sẻ kiến thức với cộng đồng học tập rộng khắp.
           </p>
         </div>
 
