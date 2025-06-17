@@ -5,7 +5,7 @@ import { ToastContainer } from "react-toastify";
 
 // Lazy load pages and components
 const Layout = lazy(() => import('./pages/Layout'));
-const Save = lazy(() => import('./pages/Save'));
+const Saved = lazy(() => import('./pages/Saved'));
 const Home = lazy(() => import('./pages/Home'));
 const Register = lazy(() => import('./pages/Register'));
 const VerifyEmailPage = lazy(() => import('./pages/VerifyMailPage'));
@@ -19,7 +19,7 @@ const ForgotPassword = lazy(() => import('./pages/ForgotPassword'));
 const ResetPassword = lazy(() => import('./pages/ResetPassword'));
 const CategoryPage = lazy(() => import ('./pages/CategoryPage'));
 const SearchResultsPage = lazy(() => import ('./pages/SearchResultsPage'));
-
+const ListDetail = lazy(() => import ('./pages/ListDetail'));
 
 // admin page
 const AdminLayout = lazy(() => import ('./pages/admin/AdminLayout'))
@@ -53,7 +53,16 @@ function App() {
         <Route path="/reset-password" element={<ResetPassword />} />
 
         <Route element={<Layout />}>
-          <Route path="/save" index element={ <Save/>} />
+          <Route path='/list/:listId' element= {
+            <ProtectedRoute>
+              <ListDetail />
+            </ProtectedRoute>
+          } />
+          <Route path="/saved" index element={ 
+            <ProtectedRoute>
+              <Saved/>
+            </ProtectedRoute>
+            } />
           <Route index element={<Home />} />
           <Route
             path="/profile"

@@ -1,28 +1,39 @@
 import { useDispatch, useSelector } from "react-redux";
 import { clearUserInfo } from "../store/slices/userSlice";
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
 import defaultAvatar from "@imgs/defaultAvatar.png";
 import api from "../utils/api";
+import { UserIcon, BookmarkIcon, CogIcon, ArrowRightOnRectangleIcon } from "@heroicons/react/24/outline";
 
 const MainDropDown = () => {
   const user = useSelector((state) => state.user.userInfo);
   const dispatch = useDispatch();
   const [isOpen, setIsOpen] = useState(false);
+  const dropdownRef = useRef(null);
+
+  // Đóng dropdown khi nhấp ra ngoài
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
+        setIsOpen(false);
+      }
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
 
   const handleToggleDropDown = () => {
     setIsOpen((prev) => !prev);
   };
-  
-  const saveMet =async () =>{
-    console.log("hehe")
-    window.location.href = "/save";
-  }
 
-   const Profile =async () =>{
-    console.log("hehepp")
+  const saveMet = async () => {
+    window.location.href = "/saved";
+  };
+
+  const Profile = async () => {
+    console.log("hehepp");
     window.location.href = "/profile";
-  }
-
+  };
 
   const handleLogout = async () => {
     try {
@@ -36,31 +47,55 @@ const MainDropDown = () => {
   };
 
   return (
-    <div className="relative cursor-pointer z-[1000]" onClick={handleToggleDropDown}>
-      <img
-        src={user?.avatar || defaultAvatar}
-        alt="User Avatar"
-        className="h-14 w-14 rounded-full object-cover"
-      />
+    <div className="relative z-[1000]" ref={dropdownRef}>
+      <button
+        onClick={handleToggleDropDown}
+        className="flex items-center focus:outline-none"
+        aria-label="Toggle user menu"
+      >
+        <img
+          src={user?.avatar || defaultAvatar}
+          alt="User Avatar"
+          className="h-12 w-12 rounded-full object-cover border-2 border-gray-300 hover:border-blue-500 transition-colors duration-200"
+        />
+      </button>
 
       {isOpen && (
         <div
           id="main-drop-down"
-          className="w-48 bg-black text-white absolute top-16 right-0 rounded shadow-lg overflow-visible z-[1000]"
+          className="absolute top-14 right-0 w-56 bg-white rounded-lg shadow-xl border border-gray-100 overflow-hidden z-[1000] transition-all duration-200 ease-in-out transform origin-top-right scale-100"
         >
-          <p className="p-4">Hello, {user?.name || "User"}</p>
-          <ul>
-            <li className="p-2 hover:bg-gray-700 cursor-pointer"
-            onClick={Profile}
-            > Profile</li>
-            <li className="p-2 hover:bg-gray-700 cursor-pointer"
-            onClick={saveMet}
-            > Save </li>
-            <li className="p-2 hover:bg-gray-700 cursor-pointer">Settings</li>
+          <div className="p-4 border-b border-gray-200 bg-gray-50">
+            <p className="text-sm font-semibold text-gray-800 truncate">
+              Hello, {user?.name || "User"}
+            </p>
+          </div>
+          <ul className="py-2">
             <li
-              className="p-2 hover:bg-gray-700 cursor-pointer"
+              className="flex items-center px-4 py-2 text-gray-700 hover:bg-blue-50 hover:text-blue-600 cursor-pointer transition-colors duration-150"
+              onClick={Profile}
+            >
+              <UserIcon className="h-5 w-5 mr-3" />
+              Profile
+            </li>
+            <li
+              className="flex items-center px-4 py-2 text-gray-700 hover:bg-blue-50 hover:text-blue-600 cursor-pointer transition-colors duration-150"
+              onClick={saveMet}
+            >
+              <BookmarkIcon className="h-5 w-5 mr-3" />
+              Saved
+            </li>
+            <li
+              className="flex items-center px-4 py-2 text-gray-700 hover:bg-blue-50 hover:text-blue-600 cursor-pointer transition-colors duration-150"
+            >
+              <CogIcon className="h-5 w-5 mr-3" />
+              Settings
+            </li>
+            <li
+              className="flex items-center px-4 py-2 text-red-600 hover:bg-red-50 hover:text-red-700 cursor-pointer transition-colors duration-150"
               onClick={handleLogout}
             >
+              <ArrowRightOnRectangleIcon className="h-5 w-5 mr-3" />
               Logout
             </li>
           </ul>
