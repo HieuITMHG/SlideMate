@@ -23,6 +23,11 @@ const MainDropDown = () => {
     window.location.href = "/profile";
   }
 
+  const ChangePass =async () =>{
+    console.log("hehepp")
+    window.location.href = "/change-passwork";
+  }
+
 
   const handleLogout = async () => {
     try {
@@ -57,6 +62,8 @@ const MainDropDown = () => {
             onClick={saveMet}
             > Save </li>
             <li className="p-2 hover:bg-gray-700 cursor-pointer">Settings</li>
+            <li className="p-2 hover:bg-gray-700 cursor-pointer"
+            onClick={ChangePass}>Đổi mật khẩu</li>
             <li
               className="p-2 hover:bg-gray-700 cursor-pointer"
               onClick={handleLogout}
