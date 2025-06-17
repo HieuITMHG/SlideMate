@@ -11,6 +11,11 @@ const {
   sendResetCode,
   verifyResetCode,
   resetPassword,
+<<<<<<< HEAD
+=======
+  getUserInfo,
+  updateUserInfo,
+>>>>>>> a846e9bd2a9a16e9a396a78496bbef7e5c6e0211
   changePassword
 } = require('../controllers/userController');
 const auth = require('../middleware/auth');
@@ -30,6 +35,9 @@ router.post('/reset-password', resetPassword);
 router.get('/me', auth, getMe);
 router.post('/logout', auth, logOut);
 router.get('/verify-email', verifyEmail);
+router.get('/info', auth, getUserInfo);
+router.put('/update', auth, updateUserInfo);
+router.post('/change-password', auth, changePassword);
 
 //change password
 router.post('/change-password', auth,changePassword);

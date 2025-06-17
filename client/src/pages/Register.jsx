@@ -23,7 +23,6 @@ function Register() {
       });
 
       if (response.status === 201) {
-        localStorage.setItem('accessToken', response.data.accessToken);
         dispatch(setUserInfo({ email, username }));
         navigate('/verify-email'); 
       } else {
@@ -38,7 +37,6 @@ function Register() {
   const handleGoogleSuccess = async (credentialResponse) => {
     try {
       const response = await publicApi.post('/api/users/google', { token: credentialResponse.credential });
-      localStorage.setItem('accessToken', response.data.accessToken);
       dispatch(setUserInfo(response.data.user));
       console.log(response.data.user)
       navigate('/profile');

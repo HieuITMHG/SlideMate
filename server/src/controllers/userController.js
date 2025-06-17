@@ -117,6 +117,9 @@ const googleLogin = async (req, res) => {
       .then((ticket) => ticket.getPayload());
 
     let account = await Account.findOne({ email });
+    if (!account.is_active) {
+      return res.status(400).json({message:"Tài khoản không khả dụng"});
+    }
 
     if (!account) {
       const role = await Role.findOne({ role_name: "User" }) || (await new Role({ role_name: "User" }).save());
@@ -314,6 +317,7 @@ const resetPassword = async (req, res) => {
   }
 };
 
+<<<<<<< HEAD
 const changePassword = async (req, res) => {
   try {
     const { userId, currentPassword, newPassword } = req.body;
@@ -347,6 +351,109 @@ const changePassword = async (req, res) => {
   } catch (error) {
     console.error("Change password error:", error);
     return res.status(500).json({ message: "Lỗi máy chủ" });
+=======
+const getUserInfo = async (req, res) => {
+  try {
+    const accountId = req.user.id;
+
+    const account = await Account.findById(accountId).select('-password -otp -otp_expire_time');
+    if (!account) {
+      return res.status(404).json({ message: 'Tài khoản không tồn tại' });
+    }
+
+    const user = await User.findOne({ account: accountId });
+    if (!user) {
+      return res.status(404).json({ message: 'Người dùng không tồn tại' });
+    }
+
+    const userInfo = {
+      username: account.username,
+      email: account.email,
+      is_active: account.is_active,
+      first_name: user.first_name,
+      last_name: user.last_name,
+      phone: user.phone,
+      organization: user.organization,
+    };
+    res.status(200).json({ success: true, data: userInfo });
+  } catch (error) {
+    console.error('Lỗi lấy thông tin người dùng:', error);
+    res.status(500).json({ message: 'Lỗi server' });
+  }
+};
+
+const changePassword = async (req, res) => {
+  try {
+    const { oldPassword, newPassword } = req.body;
+    const accountId = req.user.id;
+
+    const account = await Account.findById(accountId);
+    if (!account) {
+      return res.status(404).json({ message: 'Tài khoản không tồn tại' });
+    }
+
+    const isMatch = await bcrypt.compare(oldPassword, account.password);
+    if (!isMatch) {
+      return res.status(400).json({ message: 'Mật khẩu cũ không đúng' });
+    }
+
+    const salt = await bcrypt.genSalt(10);
+    account.password = await bcrypt.hash(newPassword, salt);
+    await account.save();
+
+    res.status(200).json({ message: 'Đổi mật khẩu thành công' });
+  } catch (error) {
+    console.error('Lỗi đổi mật khẩu:', error);
+    res.status(500).json({ message: 'Lỗi server' });
+  }
+};
+
+const updateUserInfo = async (req, res) => {
+  try {
+    const accountId = req.user.id;
+    const { username, email, first_name, last_name, phone, organization } = req.body;
+
+    const account = await Account.findById(accountId);
+    if (!account) {
+      return res.status(404).json({ message: 'Tài khoản không tồn tại' });
+    }
+
+    if (username) account.username = username;
+    if (email) {
+      const existingAccount = await Account.findOne({ email, _id: { $ne: accountId } });
+      if (existingAccount) {
+        return res.status(400).json({ message: 'Email đã được sử dụng' });
+      }
+      account.email = email;
+    }
+    await account.save();
+
+    const user = await User.findOne({ account: accountId });
+    if (!user) {
+      return res.status(404).json({ message: 'Người dùng không tồn tại' });
+    }
+
+    if (first_name) user.first_name = first_name;
+    if (last_name) user.last_name = last_name;
+    if (phone) user.phone = phone;
+    if (organization) user.organization = organization;
+    await user.save();
+
+    const updatedInfo = {
+      username: account.username,
+      email: account.email,
+      is_active: account.is_active,
+      first_name: user.first_name,
+      last_name: user.last_name,
+      phone: user.phone,
+      organization: user.organization,
+    };
+
+    res.status(200).json({ success: true, data: updatedInfo });
+  } catch (error) {
+    console.error('Lỗi cập nhật thông tin:', error);
+    res.status(500).json({ message: 'Lỗi server' });
+>>>>>>> a846e9bd2a9a16e9a396a78496bbef7e5c6e0211
   }
 };
 
@@ -361,5 +468,11 @@ module.exports = {
   sendResetCode,
   verifyResetCode,
   resetPassword,
+<<<<<<< HEAD
   changePassword,
+=======
+  getUserInfo,
+  updateUserInfo,
+  changePassword
+>>>>>>> a846e9bd2a9a16e9a396a78496bbef7e5c6e0211
 };

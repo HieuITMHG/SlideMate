@@ -3,21 +3,23 @@ import { FileType } from "../enums";
 import { FaHeart, FaBookmark } from "react-icons/fa";
 import { useState } from "react";
 import { toggleSaveMaterial } from "../apis/materialApis";
+import api from "../utils/api"; // Import api for toggleLike
 import { toast } from "react-toastify";
 
 const MaterialCard = ({ material }) => {
-  const [isSaved, setIsSaved] = useState(material.is_saved|| false);
+  const [isSaved, setIsSaved] = useState(material.is_saved || false);
+  const [isLiked, setIsLiked] = useState(material.is_liked || false); // Initialize with is_liked
 
   const handleSave = async () => {
-    const previousIsSaved = isSaved; // Store current state for revert
-    setIsSaved(!isSaved); // Optimistic update for instant icon color change
+    const previousIsSaved = isSaved;
+    setIsSaved(!isSaved); // Optimistic update
 
     try {
       const response = await toggleSaveMaterial(material.id);
-      setIsSaved(response.saved); // Confirm state from API
+      setIsSaved(response.saved);
       toast.success(response.message, {
         position: "top-right",
-        autoClose: 3000, // Adjusted to 3s for consistency with your App.js
+        autoClose: 10000,
         hideProgressBar: false,
         closeOnClick: true,
         pauseOnHover: true,
@@ -28,7 +30,7 @@ const MaterialCard = ({ material }) => {
       setIsSaved(previousIsSaved); // Revert on error
       toast.error(err.response?.data?.message || "Error toggling save status!", {
         position: "top-right",
-        autoClose: 3000,
+        autoClose: 10000,
         hideProgressBar: false,
         closeOnClick: true,
         pauseOnHover: true,
@@ -36,6 +38,37 @@ const MaterialCard = ({ material }) => {
         theme: "light",
       });
       console.error("Toggle save error:", err);
+    }
+  };
+
+  const handleLike = async () => {
+    const previousIsLiked = isLiked;
+    setIsLiked(!isLiked); // Optimistic update
+
+    try {
+      const response = await api.post(`/api/materials/toggle-like/${material.id}`);
+      setIsLiked(response.data.liked); // Confirm state from API
+      toast.success(response.data.message, {
+        position: "top-right",
+        autoClose: 3000,
+        hideProgressBar: false,
+        closeOnClick: true,
+        pauseOnHover: true,
+        draggable: true,
+        theme: "light",
+      });
+    } catch (err) {
+      setIsLiked(previousIsLiked); // Revert on error
+      toast.error(err.response?.data?.message || "Error toggling like status!", {
+        position: "top-right",
+        autoClose: 3000,
+        hideProgressBar: false,
+        closeOnClick: true,
+        pauseOnHover: true,
+        draggable: true,
+        theme: "light",
+      });
+      console.error("Toggle like error:", err);
     }
   };
 
@@ -66,11 +99,14 @@ const MaterialCard = ({ material }) => {
 
         {/* Heart button - top right corner */}
         <button
+          onClick={handleLike}
           className="absolute top-2 right-2 w-9 h-9 flex items-center justify-center cursor-pointer
                     bg-black/70 text-white border border-white rounded-full opacity-0 
                     group-hover:opacity-100 transition-all duration-300 z-20 hover:scale-110 shadow-md"
         >
-          <FaHeart className="text-lg hover:text-red-500" />
+          <FaHeart
+            className={`text-lg ${isLiked ? "text-red-500" : "hover:text-red-500"} transition-colors duration-200`}
+          />
         </button>
 
         {/* Bookmark button - bottom right corner */}
@@ -92,7 +128,7 @@ const MaterialCard = ({ material }) => {
         </Link>
       </div>
 
-      <Link to={`/user/${material.user.id}`} className="hover:underline font-semibold text-[#00809D]">
+      <Link to={`/user/${material.user.userId}`} className="hover:underline font-semibold text-[#00809D]">
         <p>{material.user.username}</p>
       </Link>
       <p className="text-gray-600 text-sm">
