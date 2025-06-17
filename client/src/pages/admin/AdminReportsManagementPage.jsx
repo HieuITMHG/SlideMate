@@ -5,25 +5,31 @@ import HandledReportsPage from './HandledReportsPage';
 const AdminReportsManagementPage = () => {
     const [viewPendingReports, setViewPendingReports] = useState(true);
     return (
-        <div className="bg-sky-100 w-full h-full m-auto p-auto rounded-xl">
-            <h1 className="text-5xl font-bold text-center m-2 p-2 ">Báo cáo tài liệu vi phạm từ người dùng</h1>
+        <div className="bg-sky-50 w-full h-full p-4 rounded-xl">
+            <h1 className="text-3xl text-sky-900 text-center font-bold mb-2">Báo cáo tài liệu vi phạm từ người dùng</h1>
 
-            {/* Nut chuyen page */}
-            <div className="ml-1 w-1/4">
-                <button
-                    onClick={() => setViewPendingReports(true)}
-                    className={`${viewPendingReports ? "bg-blue-400" : "hover:bg-blue-200"} shadow py-1  px-3 w-1/2`}
-                >
-                    Chưa xử lý
-                </button>
-                <button
+            {/* Tab toggle */}
+            <div className='w-1/4 flex flex-row gap-1 text-center text-base'>
+
+                <div className={`w-1/2 cursor-pointer ${(viewPendingReports
+                    ? "text-sky-700 font-bold"
+                    : "text-gray-600 hover:text-sky-500 hover:font-bold")}`}
+                    onClick={() => setViewPendingReports(true)}>
+                    <div className='p-1'>Chưa xử lý</div>
+                    {viewPendingReports && <hr className='border-sky-500 border-1' />}
+                </div>
+
+                <div className={`w-1/2 cursor-pointer ${(!viewPendingReports
+                    ? "text-sky-700 font-bold"
+                    : "text-gray-600 hover:text-sky-500 hover:font-bold")}`}
                     onClick={() => setViewPendingReports(false)}
-                    className={`${!viewPendingReports ? "bg-blue-400" : "hover:bg-blue-200"} shadow py-1  px-3 w-1/2`}
                 >
-                    Đã xử lý
-                </button>
+                    <div className='p-1'>Đã xử lý</div>
+                    {!viewPendingReports && <hr className='border-sky-500 border-1' />}
+                </div>
             </div>
-            <hr />
+
+            <hr className="border-gray-300 border-1" />
 
             {/* Page */}
             {(viewPendingReports) ? <PendingReportsPage /> : <HandledReportsPage />}
