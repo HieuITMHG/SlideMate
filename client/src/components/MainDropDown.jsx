@@ -33,17 +33,7 @@ const MainDropDown = () => {
   const Profile = async () => {
     console.log("hehepp");
     window.location.href = "/profile";
-<<<<<<< HEAD
-  }
-
-  const ChangePass =async () =>{
-    console.log("hehepp")
-    window.location.href = "/change-passwork";
-  }
-
-=======
   };
->>>>>>> a846e9bd2a9a16e9a396a78496bbef7e5c6e0211
 
   const handleLogout = async () => {
     try {
@@ -75,26 +65,12 @@ const MainDropDown = () => {
           id="main-drop-down"
           className="absolute top-14 right-0 w-56 bg-white rounded-lg shadow-xl border border-gray-100 overflow-hidden z-[1000] transition-all duration-200 ease-in-out transform origin-top-right scale-100"
         >
-<<<<<<< HEAD
-          <p className="p-4">Hello, {user?.name || "User"}</p>
-          <ul>
-            <li className="p-2 hover:bg-gray-700 cursor-pointer"
-            onClick={Profile}
-            > Profile</li>
-            <li className="p-2 hover:bg-gray-700 cursor-pointer"
-            onClick={saveMet}
-            > Save </li>
-            <li className="p-2 hover:bg-gray-700 cursor-pointer">Settings</li>
-            <li className="p-2 hover:bg-gray-700 cursor-pointer"
-            onClick={ChangePass}>Đổi mật khẩu</li>
-=======
           <div className="p-4 border-b border-gray-200 bg-gray-50">
             <p className="text-sm font-semibold text-gray-800 truncate">
               Hello, {user?.name || "User"}
             </p>
           </div>
           <ul className="py-2">
->>>>>>> a846e9bd2a9a16e9a396a78496bbef7e5c6e0211
             <li
               className="flex items-center px-4 py-2 text-gray-700 hover:bg-blue-50 hover:text-blue-600 cursor-pointer transition-colors duration-150"
               onClick={Profile}

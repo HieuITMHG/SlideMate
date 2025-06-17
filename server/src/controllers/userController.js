@@ -317,41 +317,6 @@ const resetPassword = async (req, res) => {
   }
 };
 
-<<<<<<< HEAD
-const changePassword = async (req, res) => {
-  try {
-    const { userId, currentPassword, newPassword } = req.body;
-
-    // Tìm tài khoản theo ID
-    const account = await Account.findById(userId);
-    if (!account) {
-      return res.status(404).json({ message: "Không tìm thấy tài khoản" });
-    }
-
-    // So sánh mật khẩu cũ
-    const isMatch = await bcrypt.compare(currentPassword, account.password);
-    if (!isMatch) {
-      return res.status(400).json({ message: "Mật khẩu hiện tại không đúng" });
-    }
-
-    // Kiểm tra xem mật khẩu mới có trùng với cũ không
-    const isSameAsOld = await bcrypt.compare(newPassword, account.password);
-    if (isSameAsOld) {
-      return res.status(400).json({ message: "Mật khẩu mới không được trùng với mật khẩu cũ" });
-    }
-
-    // Mã hóa mật khẩu mới
-    const hashedPassword = await bcrypt.hash(newPassword, 10);
-
-    // Cập nhật mật khẩu
-    account.password = hashedPassword;
-    await account.save();
-
-    return res.json({ message: "Đổi mật khẩu thành công" });
-  } catch (error) {
-    console.error("Change password error:", error);
-    return res.status(500).json({ message: "Lỗi máy chủ" });
-=======
 const getUserInfo = async (req, res) => {
   try {
     const accountId = req.user.id;
@@ -453,7 +418,6 @@ const updateUserInfo = async (req, res) => {
   } catch (error) {
     console.error('Lỗi cập nhật thông tin:', error);
     res.status(500).json({ message: 'Lỗi server' });
->>>>>>> a846e9bd2a9a16e9a396a78496bbef7e5c6e0211
   }
 };
 
@@ -468,11 +432,7 @@ module.exports = {
   sendResetCode,
   verifyResetCode,
   resetPassword,
-<<<<<<< HEAD
-  changePassword,
-=======
   getUserInfo,
   updateUserInfo,
   changePassword
->>>>>>> a846e9bd2a9a16e9a396a78496bbef7e5c6e0211
 };

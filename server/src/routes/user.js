@@ -11,11 +11,8 @@ const {
   sendResetCode,
   verifyResetCode,
   resetPassword,
-<<<<<<< HEAD
-=======
   getUserInfo,
   updateUserInfo,
->>>>>>> a846e9bd2a9a16e9a396a78496bbef7e5c6e0211
   changePassword
 } = require('../controllers/userController');
 const auth = require('../middleware/auth');

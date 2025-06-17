@@ -17,13 +17,9 @@ const MaterialDetail = lazy(() => import('./pages/MaterialDetail'));
 const ProtectedRoute = lazy(() => import('./components/ProtectedRoute'));
 const ForgotPassword = lazy(() => import('./pages/ForgotPassword'));
 const ResetPassword = lazy(() => import('./pages/ResetPassword'));
-<<<<<<< HEAD
-const ChangePass = lazy(() => import('./pages/ChangePass'));
-=======
 const CategoryPage = lazy(() => import ('./pages/CategoryPage'));
 const SearchResultsPage = lazy(() => import ('./pages/SearchResultsPage'));
 const ListDetail = lazy(() => import ('./pages/ListDetail'));
->>>>>>> a846e9bd2a9a16e9a396a78496bbef7e5c6e0211
 
 // admin page
 const AdminLayout = lazy(() => import ('./pages/admin/AdminLayout'))
@@ -74,13 +70,6 @@ function App() {
               <ProtectedRoute>
                 <Profile />
               </ProtectedRoute>
-            }
-          />
-
-          <Route
-            path="/change-passwork"
-            element={
-                <ChangePass/>
             }
           />
 
