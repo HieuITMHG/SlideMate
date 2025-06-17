@@ -197,8 +197,25 @@ class AdminService {
     }
 
     static async selectAllHandledReports() {
-        const selectAll = await Report.find({ status: "HANDLED" });
-        return selectAll;
+        const selectAll = await Report
+        .find({ status: "HANDLED" })
+        .populate({path:"material_id", populate:{path:"user_id"}})
+        ;
+        const reportMapped = selectAll.map((r)=>(
+            {
+                report_id: r._id,
+                material_id: r?.material_id?._id || null,
+                material_title: r?.material_id?.title || null,
+                material_owner_id: r?.material_id?.user_id?._id || null,
+                report_content: r.report_content,
+                admin_id: r.admin_id,
+                is_delete_material: r.is_delete_material,
+                is_ban_account: r.is_ban_account,
+                report_at: r.createdAt,
+                handle_at: r.updatedAt
+            }
+        ));
+        return reportMapped;
     }
 
     static async handleAllReportsOfMaterial({ material_id, admin_id, material_owner_id, is_delete_material, is_deactivate_account }) {
