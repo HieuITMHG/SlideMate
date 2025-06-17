@@ -13,7 +13,10 @@ const Home = () => {
   const [lastScrollY, setLastScrollY] = useState(0);
   const [isLoading, setIsLoading] = useState(true);
   const [materialsByCategory, setMaterialsByCategory] = useState([]);
-  const lst_category = ["Công nghệ", "Văn học", "Sinh học"];
+  const lst_category = [
+    {name: "công nghệ", id:'683e99daab6afe8c54e9ee32'}, 
+    {name:"văn học", id:'6842482a172321b3500b600d'}, 
+    {name: "sinh học", id: '684247d9172321b3500b6006'}];
   const scrollRefs = useRef([]);
   const bannerRef = useRef(null);
 
@@ -35,13 +38,14 @@ const Home = () => {
       try {
         const updatedMaterials = [];
         for (const category of lst_category) {
-          const response = await getTopMaterialsByCategory(category);
+          const response = await getTopMaterialsByCategory(category.id);
           updatedMaterials.push({
             category: response.category || category,
             materials: response.materials || [],
           });
         }
         setMaterialsByCategory(updatedMaterials);
+        console.log(updatedMaterials);
         setIsLoading(false);
       } catch (error) {
         console.error("Error fetching materials:", {
@@ -150,8 +154,8 @@ const Home = () => {
         {/* Materials by Category */}
         {materialsByCategory.length > 0 ? (
           materialsByCategory.map(({ category, materials }, catIndex) => (
-            <div key={category} className="px-4 py-6">
-              <h2 className="text-2xl font-bold text-gray-800 mb-4">Phổ biến nhất trong lĩnh vực {category}</h2>
+            <div key={category.id} className="px-4 py-6">
+              <h2 className="text-2xl font-bold text-gray-800 mb-4">Phổ biến nhất trong lĩnh vực {category.name}</h2>
               <div className="relative flex items-center">
                 <button
                   onClick={() => scrollLeft(catIndex)}
@@ -174,7 +178,7 @@ const Home = () => {
                         </div>
                       ))
                     ) : (
-                      <p className="text-gray-500 w-full">No materials found for {category}</p>
+                      <p className="text-gray-500 w-full">No materials found for {category.name}</p>
                     )}
                   </div>
                 </div>

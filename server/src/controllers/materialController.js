@@ -268,6 +268,7 @@ const getMaterial = async (req, res) => {
   }
 };
 
+
 const getMaterialsByCategory = async (req, res) => {
   try {
     const { categoryName } = req.params;
@@ -741,18 +742,13 @@ const getRelatedMaterials = async (req, res) => {
 };
 
 const getTopViewedMaterialsByCategory = async (req, res) => {
-  const { name } = req.params; // hoặc req.query.name nếu bạn truyền qua query
-
+  const { category_id } = req.params; // hoặc req.query.name nếu bạn truyền qua query
   try {
-    // 1. Tìm category theo tên
-    const category = await Category.findOne({ category_name: name });
-    if (!category) {
-      return res.status(404).json({ message: 'Category not found' });
-    }
+    const category = Category.findOne({_id: category_id});
 
     // 2. Lấy 10 tài liệu có lượt xem cao nhất
     let materials = await Material.find({
-      category_id: category._id,
+      category_id: new mongoose.Types.ObjectId(category_id),
       is_active: true,
       visibility: 'PUBLIC',
     })
@@ -811,7 +807,7 @@ const getTopViewedMaterialsByCategory = async (req, res) => {
       is_liked: likedMaterialIds.includes(material._id.toString()),
     }));
 
-    return res.json({ category: name, materials: formattedMaterials });
+    return res.json({ category: category.category_name, materials: formattedMaterials });
   } catch (error) {
     console.error('Error fetching top viewed materials:', error);
     return res.status(500).json({ message: 'Internal server error' });
