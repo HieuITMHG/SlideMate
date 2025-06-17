@@ -810,7 +810,6 @@ const getTopViewedMaterialsByCategory = async (req, res) => {
       is_saved: savedMaterialIds.includes(material._id.toString()),
       is_liked: likedMaterialIds.includes(material._id.toString()),
     }));
-    console.log(formattedMaterials);
 
     return res.json({ category: name, materials: formattedMaterials });
   } catch (error) {
