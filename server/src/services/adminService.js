@@ -6,6 +6,9 @@ const Material = require("../models/Material");
 const Category = require("../models/Category");
 const Report = require("../models/Report");
 const FileType = require("../models/FileType");
+const ListMaterial = require("../models/ListMaterial");
+const Like = require("../models/Like");
+const MaterialTag = require("../models/MaterialTag");
 
 class AdminService {
 
@@ -25,6 +28,33 @@ class AdminService {
 
         const admin = await Admin.findOne({ account: account._id });
         return admin;
+    }
+
+    static async deleteMaterial({material_id}){
+        // check
+        const material = await Material.findOne({_id: material_id});
+        if (! material)
+            throw new Error("material id không tồn tại!");
+
+        // delete List-Material
+        await ListMaterial.deleteMany(
+            {material_id: material_id}
+        );
+        
+        // delete Like
+        await Like.deleteMany(
+            {material_id:material_id}
+        );
+
+        // delete Material-Tag
+        await MaterialTag.deleteMany(
+            {material_id: material_id}
+        );
+
+        // delete Material 
+        await Material.deleteOne(
+            {_id:material_id}
+        );
     }
 
 
@@ -179,7 +209,7 @@ class AdminService {
         }
 
         if (is_delete_material) {
-            await Material.deleteOne({ _id: material_id });
+            await AdminService.deleteMaterial({material_id:material_id});
         }
 
         await Report.updateMany(
