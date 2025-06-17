@@ -9,13 +9,14 @@ import {
 } from "recharts";
 
 const CustomPieChart = ({
-    data, 
-    color,
-    dataKey = "value",
-    nameKey = "name",
-    innerRadius = 0,
-    outerRadius = 100
-  }) => {
+  data,
+  color,
+  dataKey = "value",
+  nameKey = "name",
+  innerRadius = 0,
+  outerRadius = 100,
+  tooltip = null
+}) => {
   return (
     <ResponsiveContainer width="100%" height={300}>
       <PieChart>
@@ -30,11 +31,11 @@ const CustomPieChart = ({
           {data.map((entry, index) => (
             <Cell
               key={`cell-${index}`}
-              fill={color[index % color.length]} // lặp lại màu nếu thiếu
+              fill={color[index % color.length]}
             />
           ))}
         </Pie>
-        <Tooltip />
+        {tooltip != null ? <Tooltip content={tooltip} /> : <Tooltip />}
         <Legend />
       </PieChart>
     </ResponsiveContainer>

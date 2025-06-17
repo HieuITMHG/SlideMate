@@ -16,15 +16,17 @@ const CustomBarChart = ({
   width = "100%",
   height = 300,
   dataKeyLabel = "label",
-  dataKeyValue = "value"
-}) =>{
+  dataKeyValue = "value",
+  tick = true,
+  tooltip = null
+}) => {
   return (
     <ResponsiveContainer width={width} height={height}>
       <BarChart data={data}>
         <CartesianGrid strokeDasharray="3 3" />
-        <XAxis dataKey={dataKeyLabel} />
+        <XAxis dataKey={dataKeyLabel} tick={tick} />
         <YAxis />
-        <Tooltip />
+        {tooltip != null ? <Tooltip content={tooltip} /> : <Tooltip />}
         <Legend />
         <Bar dataKey={dataKeyValue} fill={color} />
       </BarChart>
