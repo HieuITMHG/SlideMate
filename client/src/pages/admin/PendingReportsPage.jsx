@@ -2,196 +2,133 @@ import { useState, useEffect, useCallback } from 'react';
 import api from '../../utils/api';
 
 
-const fakeData = [
-    {
-        "material_id": "684fa72aa75c086b5188868a",
-        "material_title": "Công nghệ nana",
-        "material_pdf_url": "https://res.cloudinary.com/dgfolq4in/raw/upload/v1750050601/SlideMate/684fa724a75c086b51888689/converted.pdf",
-        "material_thumnail_url": "https://res.cloudinary.com/dgfolq4in/image/upload/v1750050602/SlideMate/684fa724a75c086b51888689/thumbnail.png.png",
-        "material_owner_id": "684f88d39d579b3818ef0fbf",
-        "reports": [
-            {
-                "reporter_id": "684f88d39d579b3818ef0fbf",
-                "report_at": "2025-06-16T06:13:07.997Z",
-                "report_content": "Hư quá",
-                "report_id": "684fb5f3380ad086bdd82b54"
-            },
-            {
-                "reporter_id": "684fc0efca172efb11ce1366",
-                "report_at": "2025-06-16T08:37:33.335Z",
-                "report_content": "Thích thì tố",
-                "report_id": "684fd7cd0d0005ef84c30d31"
-            },
-            {
-                "reporter_id": "684fd8190d0005ef84c30d4e",
-                "report_at": "2025-06-16T08:39:12.181Z",
-                "report_content": "Tố cáothêm cái nữa",
-                "report_id": "684fd8300d0005ef84c30d7e"
-            },
-            {
-                "reporter_id": "684f88d39d579b3818ef0fbf",
-                "report_at": "2025-06-16T06:13:07.997Z",
-                "report_content": "Hư quá",
-                "report_id": "684fb5f3380ad086bdd82b54"
-            },
-            {
-                "reporter_id": "684f88d39d579b3818ef0fbf",
-                "report_at": "2025-06-16T06:13:07.997Z",
-                "report_content": "Hư quá",
-                "report_id": "684fb5f3380ad086bdd82b54"
-            },
-            {
-                "reporter_id": "684f88d39d579b3818ef0fbf",
-                "report_at": "2025-06-16T06:13:07.997Z",
-                "report_content": "Hư quá",
-                "report_id": "684fb5f3380ad086bdd82b54"
-            }
-        ]
-    },
-    {
-        "material_id": "684f98769e7f9898a1740c2c",
-        "material_title": "Văn học 1",
-        "material_pdf_url": "https://res.cloudinary.com/dgfolq4in/raw/upload/v1750046836/SlideMate/684f986f9e7f9898a1740c2b/converted.pdf",
-        "material_thumnail_url": "https://res.cloudinary.com/dgfolq4in/image/upload/v1750046837/SlideMate/684f986f9e7f9898a1740c2b/thumbnail.png.png",
-        "material_owner_id": "684f88d39d579b3818ef0fbf",
-        "reports": [
-            {
-                "reporter_id": "684fc0efca172efb11ce1366",
-                "report_at": "2025-06-16T08:37:33.335Z",
-                "report_content": "Thích thì tố",
-                "report_id": "684fd7cd0d0005ef84c30d31"
-            },
-            {
-                "reporter_id": "684fd8190d0005ef84c30d4e",
-                "report_at": "2025-06-16T08:39:12.181Z",
-                "report_content": "Tố cáothêm cái nữa",
-                "report_id": "684fd8300d0005ef84c30d7e"
-            },
-            {
-                "reporter_id": "684f88d39d579b3818ef0fbf",
-                "report_at": "2025-06-16T06:13:07.997Z",
-                "report_content": "Hư quá",
-                "report_id": "684fb5f3380ad086bdd82b54"
-            },
-            {
-                "reporter_id": "684f88d39d579b3818ef0fbf",
-                "report_at": "2025-06-16T06:13:07.997Z",
-                "report_content": "Hư quá",
-                "report_id": "684fb5f3380ad086bdd82b54"
-            },
-            {
-                "reporter_id": "684f88d39d579b3818ef0fbf",
-                "report_at": "2025-06-16T06:13:07.997Z",
-                "report_content": "Hư quá",
-                "report_id": "684fb5f3380ad086bdd82b54"
-            }
-        ]
-    }
-];
-
 const ListItem = ({ data, onClick }) => {
     return (
-        <div className='bg-white flex flex-row shadow rounded-xl m-2 p-2'>
-            <div className='shadow p-5'><img src={data.material_thumnail_url} alt="thumnail" className='h-30' /></div>
+        <div className='bg-white flex flex-row gap-4 shadow rounded-xl m-2 p-2'>
+            <div className='border-1 border-sky-600 m-1'><img src={data.material_thumnail_url} alt="thumnail" className='h-25 w-25' /></div>
 
-            <div className='shadow flex flex-col p-5'>
-                <div>{`Tiêu đề: ${data.material_title}`}</div>
-                <div>{`Id tai lieu: ${data.material_id}`}</div>
-                <div>{`Id chu so huu: ${data.material_owner_id}`}</div>
-                <div>{`So luot to cao: ${data.reports.length}`}</div>
+            <div className='rounded-xl flex flex-col p-5'>
+                <div className='text-sky-600 font-bold'>{`Tiêu đề: ${data.material_title}`}</div>
+                <div className=''>{`Id tài liệu: ${data.material_id}`}</div>
+                <div className=''>{`Id chủ sở hữu: ${data.material_owner_id}`}</div>
+                <div className='text-red-500 font-bold'>{`Số lượt bị tố cáo: ${data.reports.length}`}</div>
             </div>
 
             <div
-                className='bg-green-500 flex items-center justify-center m-auto p-5 rounded-xl hover:bg-green-300 hover:font-bold'
+                className='flex flex-row ml-auto p-5 items-center justify-center  rounded-xl'
                 onClick={() => (onClick(data))}
             >
-                <button>
-                    Chi tiet
+                <button className='px-5 py-2 rounded border-1 border-sky-500 text-sky-600 bg-white hover:font-bold hover:bg-sky-100'>
+                    Chi tiết
                 </button>
             </div>
         </div>
     )
 }
+
+
 
 const ReportsDetails = ({ data, onAction, onExit }) => {
     const [viewMaterial, setViewMaterial] = useState(false);
     const [isDeleteMaterial, setIsDeleteMaterial] = useState(false);
     const [isBanAccount, setIsBanAccount] = useState(false);
     return (
-        <div className='flex flex-col bg-white m-2 p-2 rounded-xl'>
-            <div className='text-center bg-green-500 w-1/10  p-2 rounded-xl hover:bg-green-300 hover:font-bold'>
-                <button
-                    className='text-center'
-                    onClick={onExit}>
-                    exit
-                </button>
+        <div className='flex flex-col gap-8 m-5  bg-white p-5 border-2  rounded-xl'>
+
+            <div className='flex flex-row p-5 gap-4 text-center justify-center item-center'>
+                <h2 className='text-3xl font-bold text-black'>Chi tiết báo cáo tài liệu</h2>
+                <div className='text-center ml-auto'>
+                    <button
+                        className='text-center px-15 p-2 bg-white text-sky-600 border-1 border-sky-600 rounded hover:bg-sky-100 hover:font-bold'
+                        onClick={onExit}>
+                        Thoát
+                    </button>
+                </div>
             </div>
-            <div className='shadow flex flex-col p-5 m-2'>
-                <div>{`Tiêu đề: ${data.material_title}`}</div>
-                <div>{`Id tai lieu: ${data.material_id}`}</div>
-                <div>{`Id chu so huu: ${data.material_owner_id}`}</div>
-                <div>{`So luot to cao: ${data.reports.length}`}</div>
-            </div>
-
-            <div className='text-center bg-green-500 w-2/10  p-2 rounded-xl hover:bg-green-300 hover:font-bold'>
-                <button
-                    className='text-center'
-                    onClick={() => (setViewMaterial(!viewMaterial))}>
-                    {`Click de ${(viewMaterial) ? "an" : "xem"} tai lieu`}
-                </button>
-            </div>
-
-            {viewMaterial && <div className='w-9/10 flex justify-center items-center bg-red-500'>
-                <iframe className='w-full h-200 ' src={data.material_pdf_url} ></iframe>
-            </div>}
+            <hr />
 
 
-            <div>Cac bao cao ve tai lieu nay:</div>
-            <div className='overflow-auto max-h-50 p-5 shadow m-5 rounded-xl border-1 border-black-100'>
-                {data.reports.map((r) => {
-                    return (
-                        <div className='shadow m-2 rounded-xl bg-gray-100'>
-                            <div>{`Id report: ${r.report_id}`}</div>
-                            <div>{`Id nguoi bao cao: ${r.reporter_id}`}</div>
-                            <div>{`Vao luc: ${r.report_at}`}</div>
-                            <div>{`Noi dung: ${r.report_content}`}</div>
-                        </div>
-                    );
-                })}
+            <div className='flex flex-col gap-1 p-5 rounded shadow'>
+                <h3 className='text-xl font-bold text-black'>Thông tin tài liệu</h3>
+
+                <div className='font-bold text-gray-700'>Tiêu đề: <span className='font-normal text-black'>{data.material_title}</span></div>
+                <div className='font-bold text-gray-700'>Id tài liệu: <span className='font-normal text-black'>{data.material_id}</span></div>
+                <div className='font-bold text-gray-700'>Id người đăng: <span className='font-normal text-black'>{data.material_owner_id}</span></div>
+                <div className='font-bold text-gray-700'>Số lượt bị tố cáo: <span className='font-bold text-red-600'>{data.reports.length}</span></div>
             </div>
 
-            <div>Xu ly:</div>
-            <div className='border-1 border-red-500 rounded-xl p-5'>
+
+            <div className='flex flex-col gap-1 p-5 text-center items-center  w-full'>
+                <div>
+                    <button
+                        className='text-center px-15 p-2 bg-white text-sky-600 border-1 border-sky-600 rounded hover:bg-sky-100 hover:font-bold'
+                        onClick={() => (setViewMaterial(!viewMaterial))}>
+                        {`Click để ${(viewMaterial) ? "ẩn" : "xem"} tài liệu`}
+                    </button>
+                </div>
+                {viewMaterial && <div className='p-5 w-full'>
+                    <iframe className='w-full h-200 rounded-xl' src={data.material_pdf_url} ></iframe>
+                </div>}
+            </div>
+
+
+
+            <div className='flex flex-col gap-4 w-full rounded-xl border-1 border-sky-700 p-5'>
+                <h3 className='text-xl font-bold text-black'>Các báo cáo về tài liệu này:</h3>
+                <div className='bg-gray-100 max-h-50 w-full overflow-auto p-5 rounded-xl shadow '>
+                    {data.reports.map((r) => {
+                        return (
+                            <div className='shadow p-5 my-5 rounded-xl bg-white'>
+                                {/* <div>{`Id report: ${r.report_id}`}</div>
+                                <div>{`Id nguoi bao cao: ${r.reporter_id}`}</div>
+                                <div>{`Vao luc: ${r.report_at}`}</div>
+                                <div>{`Noi dung: ${r.report_content}`}</div> */}
+                                <div className='italic text-gray-700'>{`Id báo cáo: ${r.report_id}`}</div>
+                                <div className='italic text-gray-700'>{`Người dùng ${r.reporter_id} đã báo cáo tài liệu này`}</div>
+                                <div className='italic text-gray-700'>{`Vào lúc: ${r.report_at}`}</div>
+                                <div className='font-bold text-gray-700'>Nội dung:</div>
+                                <div className=''>{`"${r.report_content}"`}</div>
+                            </div>
+                        );
+                    })}
+                </div>
+            </div>
+
+            <div className='flex flex-col gap-4 w-full border-1 border-red-500 rounded-xl p-5 bg-red-50'>
+                <h3 className='text-xl font-bold text-black'>Hướng xử  lý</h3>
+
                 <div>
                     <input
-                        className='w-4 h-4 m-2'
+                        className='w-5 h-5 m-2'
                         type="checkbox"
                         checked={isDeleteMaterial}
                         onChange={() => setIsDeleteMaterial(!isDeleteMaterial)} />
-                    <span className={(isDeleteMaterial) ? "text-red-500 font-bold text-2xl" : ""}>Xoa tai lieu</span>
+                    <span className={`font-bold ${isDeleteMaterial ? "text-red-500 text-2xl" : "text-base"}`}>Xóa tài liệu</span>
                 </div>
 
                 <div >
                     <input
-                        className='w-4 h-4 m-2'
+                        className='w-5 h-5 m-2'
                         type="checkbox"
                         checked={isBanAccount}
                         onChange={() => setIsBanAccount(!isBanAccount)} />
-                    <span className={(isBanAccount ? "text-red-500 font-bold text-2xl" : "")}>Khoa tai khoan</span>
+                    <span className={`font-bold ${isBanAccount ? "text-red-500 text-2xl" : "text-base"}`}>Khóa tài khoản người đăng tài liệu</span>
                 </div>
 
-                <div className='flex items-center justify-center p-1 m-1 text-center'>
+                <div className='flex flex-col items-center justify-center p-1 m-1 text-center'>
                     <button
-                        className='w-1/10 bg-red-500 rounded-xl p-2 hover:bg-red-500 hover:text-white hover:text-xl hover:text-red-500 hover:font-bold'
+                        className='py-2 px-10 bg-red-500 text-white font-bold rounded hover:bg-red-400 hover:text-xl'
                         onClick={() => onAction({ data: data, isDeleteMaterial: isDeleteMaterial, isBanAccount: isBanAccount })}
-                    >Xac nhan</button>
+                    >Xác nhận xử lý</button>
                 </div>
+
 
             </div>
 
         </div>
     )
 }
+
 const PendingReportsPage = () => {
     const [reports, setReports] = useState([]);
     const [currentReport, setCurrentReport] = useState(null);

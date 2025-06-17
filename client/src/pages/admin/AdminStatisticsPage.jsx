@@ -54,7 +54,7 @@ const AdminStatisticsPage = () => {
 
 
   return (
-    <div className='bg-sky-100 p-8 rounded-xl h-screen overflow-auto'>
+    <div className='bg-sky-100 p-4 rounded-xl h-screen overflow-auto'>
 
 
       <h1 className="text-3xl font-bold text-center text-sky-900">Thống kê tài liệu và danh mục</h1>
