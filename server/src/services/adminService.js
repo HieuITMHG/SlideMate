@@ -230,7 +230,7 @@ class AdminService {
         }
 
         await Report.updateMany(
-            { material_id: material_id },
+            { material_id: material_id, status:"PENDING" },
             {
                 $set:
                 {

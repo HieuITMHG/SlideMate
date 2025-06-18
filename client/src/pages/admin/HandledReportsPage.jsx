@@ -13,15 +13,32 @@ import api from '../../utils/api';
 //     "report_at": "2025-06-16T08:37:33.335Z",
 //     "handle_at": "2025-06-16T15:07:40.822Z"
 // }
-const ListItem = ({ data, onDetail }) => {
+const ListItem = ({ data }) => {
+
+    const [displayFullContent, setDisplayFullContent] = useState(false);
+    const maxDisplayChar = 10;
+    const full_content = data.report_content;
+    const short_content = full_content.split(" ").slice(0, maxDisplayChar).join(" ");
+
     return (
         <div className='grid grid-cols-3 gap-4 p-3 m-3 rounded shadow bg-white'>
+
             <div className='flex flex-col p-4 rounded shadow bg-white'>
                 <div className='text-black font-bold'>Thông tin về báo cáo</div>
                 <div>{`Id: ${data.report_id}`}</div>
+                <div>Nội dung tố  cáo:</div>
+
+                <div className='bg-gray-100 text-red-500 italic pl-2  rounded shadow'>
+                    {(displayFullContent) ? (full_content) : (short_content)}
+
+                    {(full_content != short_content) && <span
+                        className='pl-1 text-sm text-blue-500 cursor-pointer'
+                        onClick={() => { setDisplayFullContent(!displayFullContent) }}
+                    >{displayFullContent ? "ẩn bớt" : "...chi tiết"}</span>}
+                </div>
+
                 <div>{`Gởi lúc: ${new Date(data.report_at).toLocaleString('vi-VN')}`}</div>
                 <div>{`Xử lý lúc: ${new Date(data.handle_at).toLocaleString('vi-VN')}`}</div>
-                
             </div>
 
             <div className='flex flex-col p-4 rounded shadow bg-white'>
@@ -46,13 +63,13 @@ const ListItem = ({ data, onDetail }) => {
 
             <div className='flex flex-col p-4 rounded shadow bg-white'>
                 <div className='text-black font-bold'>Kết quả</div>
-                <div className='italic'>{`Xử  lý bởi admin: ${data.admin_id}:`}</div>
+                <div className='italic'>{`Xử  lý bởi admin: ${data.admin_id}`}</div>
                 <div className={data.is_delete_material ? "text-red-500 font-bold" : "text-green-500 font-bold"}>
                     {data.is_delete_material ? "Xóa tài liệu" : "Không xóa tài liệu"}
-                    </div>
+                </div>
                 <div className={data.is_ban_account ? "text-red-500 font-bold" : "text-green-500 font-bold"}>
                     {data.is_ban_account ? "Khóa tài khoản" : "Không khóa tài khoản"}
-                    </div>
+                </div>
             </div>
 
         </div>
@@ -84,7 +101,7 @@ const HandledReportsPage = () => {
         try {
             const response = await api.get("api/admin/reports/handled");
             const data = response.data.data;
-            
+
             data.sort((a, b) => (new Date(b.handle_at) - new Date(a.handle_at)));
             setReports(data);
         }
@@ -108,9 +125,11 @@ const HandledReportsPage = () => {
     const endIndex = Math.min((currentPage * itemsPerPage), reports.length);
     return (
         <div>
-            {reports.slice(startIndex, endIndex).map((element, index)=>(
-                <ListItem data={element} key={index}/>
-            ))}
+            <div>
+                {reports.slice(startIndex, endIndex).map((element, index) => (
+                    <ListItem data={element} key={index} />
+                ))}
+            </div>
 
             <div className="m-auto grid grid-cols-3 gap-4 items-center text-center justify-center w-1/2 p-4">
                 <button className="bg-sky-500 text-white px-4 py-2 rounded hover:bg-sky-600 disabled:cursor-not-allowed disabled:bg-gray-500"
