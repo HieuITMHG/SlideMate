@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 
 const Toolbar = ({ onSave, onLike, onDownload, onReport, isSaved, isLiked, lists, onCreateList, onSaveToList }) => {
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
   let closeTimeout = null;
 
   // Mở dropdown
@@ -28,6 +29,17 @@ const Toolbar = ({ onSave, onLike, onDownload, onReport, isSaved, isLiked, lists
       }
     };
   }, []);
+
+  // Xử lý click vào list item
+  const handleListClick = async (e, listId) => {
+    e.stopPropagation();
+    setIsLoading(true);
+    try {
+      await onSaveToList(listId);
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   return (
     <div className="flex justify-between items-center p-4 border-b border-gray-200 bg-white sticky top-0 z-10 shadow-sm">
@@ -84,15 +96,21 @@ const Toolbar = ({ onSave, onLike, onDownload, onReport, isSaved, isLiked, lists
                   lists.map((list) => (
                     <button
                       key={list.id}
-                      className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        onSaveToList(list.id);
-                        setIsDropdownOpen(false);
-                      }}
-                      aria-label={`Lưu vào danh sách ${list.list_name}`}
+                      className={`block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 flex justify-between items-center ${
+                        isLoading ? 'opacity-50 cursor-not-allowed' : ''
+                      }`}
+                      onClick={(e) => handleListClick(e, list.id)}
+                      disabled={isLoading}
+                      aria-label={`${list.is_saved ? 'Bỏ lưu khỏi' : 'Lưu vào'} danh sách ${list.list_name}`}
                     >
-                      {list.list_name}
+                      <span>{list.list_name}</span>
+                      <span className="ml-2">
+                        {list.is_saved ? (
+                          <span className="text-green-600">✓</span>
+                        ) : (
+                          <span className="text-gray-500">+</span>
+                        )}
+                      </span>
                     </button>
                   ))
                 ) : (

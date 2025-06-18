@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import api from '../utils/api';
 import { useNavigate } from 'react-router-dom';
 import { getAllCategories } from '../apis/categoryApis';
+import Footer from "../components/Footer"
 
 const MaterialUpload = () => {
   const [file, setFile] = useState(null);
@@ -116,6 +117,7 @@ const MaterialUpload = () => {
   };
 
   return (
+    <>
     <div className="max-w-3xl mx-auto p-8 bg-white shadow-lg rounded-xl mt-10">
       <h1 className="text-3xl font-bold mb-6 text-gray-800">Tải tài liệu lên</h1>
 
@@ -163,7 +165,7 @@ const MaterialUpload = () => {
             type="file"
             id="file"
             accept=".pdf,.doc,.docx,.ppt,.pptx"
-            onChange={handleFileChange} placeholder='Chọn tệp'
+            onChange={handleFileChange} 
             className="w-full file:px-4 file:py-2 file:border-0 file:bg-blue-600 file:text-white file:rounded-md hover:file:bg-blue-700 cursor-pointer"
             required
           />
@@ -254,7 +256,10 @@ const MaterialUpload = () => {
           {isLoading ? 'Đang tải lên...' : 'Tải tài liệu'}
         </button>
       </form>
+      
     </div>
+    <Footer />
+    </>
   );
 };
 

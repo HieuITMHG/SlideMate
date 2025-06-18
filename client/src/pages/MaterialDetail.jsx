@@ -11,7 +11,7 @@ import api from '../utils/api';
 import Footer from '../components/Footer';
 import RecommendSidebar from '../components/MaterialDetail/RecommendSidebar';
 import Toolbar from '../components/MaterialDetail/Toolbar';
-import { toggleSaveMaterial } from '../apis/materialApis';
+import { toggleSaveLater, toggleSaveList, getMyListWithStatus } from '../apis/materialApis';
 
 const MaterialDetail = () => {
   const { id: materialId } = useParams();
@@ -28,25 +28,43 @@ const MaterialDetail = () => {
   const [isCreateListModalOpen, setIsCreateListModalOpen] = useState(false);
   const [newListName, setNewListName] = useState('');
   const [isDescriptionExpanded, setIsDescriptionExpanded] = useState(false); // State mới cho mô tả
+  const [viewTimer, setViewTimer] = useState(null); // Timer để đếm thời gian xem
 
   useEffect(() => {
-    // Kiểm tra sessionStorage để xác định xem view đã được gửi trong phiên này chưa
-    const hasIncrementedView = sessionStorage.getItem(`view_incremented_${materialId}`);
+    // Bắt đầu timer 2 phút (120000ms) khi vào trang
+    const timer = setTimeout(async () => {
+      try {
+        await api.patch(`/api/materials/${materialId}/view`);
+        console.log(`View incremented for material ${materialId} after 2 minutes`);
+      } catch (error) {
+        console.error("Failed to increment view:", error);
+      }
+    }, 120000);
 
-    if (!hasIncrementedView) {
-        const incrementView = async () => {
-        try {
-          await api.patch(`/api/materials/${materialId}/view`);
-          console.log(`View incremented for material ${materialId}`);
-          sessionStorage.setItem(`view_incremented_${materialId}`, 'true');
-        } catch (error) {
-          console.error("Failed to increment view:", error);
-        }
-      };
+    setViewTimer(timer);
 
-      incrementView();
-    }
+    // Cleanup timer khi component unmount hoặc materialId thay đổi
+    return () => {
+      if (viewTimer) {
+        clearTimeout(viewTimer);
+      }
+    };
   }, [materialId]);
+
+  // Xử lý khi user rời khỏi trang
+  useEffect(() => {
+    const handleBeforeUnload = () => {
+      if (viewTimer) {
+        clearTimeout(viewTimer);
+      }
+    };
+
+    window.addEventListener('beforeunload', handleBeforeUnload);
+
+    return () => {
+      window.removeEventListener('beforeunload', handleBeforeUnload);
+    };
+  }, [viewTimer]);
 
   const defaultLayoutPluginInstance = defaultLayoutPlugin({
     renderToolbar: () => null,
@@ -78,21 +96,18 @@ const MaterialDetail = () => {
     fetchMaterial();
   }, [materialId]);
 
-  // Lấy danh sách Lists
+  // Lấy danh sách Lists với trạng thái material
   useEffect(() => {
-    const getMyList = async () => {
+    const getMyListWithMaterialStatus = async () => {
       try {
-        const res = await api.get('/api/lists/get-my-list');
-        const filteredLists = (res.data.lists || []).filter(
-          (list) => list.list_name.toLowerCase() !== 'later'
-        );
-        setLists(filteredLists);
+        const res = await getMyListWithStatus(materialId);
+        setLists(res.lists || []);
       } catch (err) {
         console.error('Lỗi khi tải danh sách:', err);
       }
     };
-    getMyList();
-  }, []);
+    getMyListWithMaterialStatus();
+  }, [materialId]);
 
   // Toggle lưu vào danh sách "Xem sau"
   const handleSave = async () => {
@@ -100,7 +115,7 @@ const MaterialDetail = () => {
     setIsSaved(!isSaved);
 
     try {
-      const response = await toggleSaveMaterial(materialId);
+      const response = await toggleSaveLater(materialId);
       setIsSaved(response.saved);
       toast.success(response.message, {
         position: 'top-right',
@@ -126,34 +141,21 @@ const MaterialDetail = () => {
     }
   };
 
-  // Lưu vào danh sách cụ thể
-  const handleSaveToList = async (listId) => {
+  // Toggle lưu vào danh sách cụ thể
+  const handleToggleSaveToList = async (listId) => {
     try {
-      const selectedList = lists.find((list) => list.id === listId);
-      if (!selectedList) {
-        throw new Error('Danh sách không tồn tại');
-      }
-
-      const response = await api.post('/api/lists/create', {
-        list_name: selectedList.list_name,
-        materialId,
-      });
-      toast.success(response.data.message || 'Đã lưu vào danh sách!', {
-        position: 'top-right',
-        autoClose: 3000,
-        hideProgressBar: false,
-        closeOnClick: true,
-        pauseOnHover: true,
-        draggable: true,
-        theme: 'light',
-      });
-      const res = await api.get('/api/lists/get-my-list');
-      const filteredLists = (res.data.lists || []).filter(
-        (list) => list.list_name.toLowerCase() !== 'later'
+      const response = await toggleSaveList(materialId, listId);
+      
+      // Cập nhật trạng thái trong danh sách
+      setLists(prevLists => 
+        prevLists.map(list => 
+          list.id === listId 
+            ? { ...list, is_saved: response.saved }
+            : list
+        )
       );
-      setLists(filteredLists);
-    } catch (err) {
-      toast.error(err.response?.data?.message || 'Lỗi khi lưu vào danh sách!', {
+
+      toast.success(response.message, {
         position: 'top-right',
         autoClose: 3000,
         hideProgressBar: false,
@@ -162,7 +164,17 @@ const MaterialDetail = () => {
         draggable: true,
         theme: 'light',
       });
-      console.error('Save to list error:', err);
+    } catch (err) {
+      toast.error(err.response?.data?.message || 'Lỗi khi thay đổi trạng thái lưu!', {
+        position: 'top-right',
+        autoClose: 3000,
+        hideProgressBar: false,
+        closeOnClick: true,
+        pauseOnHover: true,
+        draggable: true,
+        theme: 'light',
+      });
+      console.error('Toggle save to list error:', err);
     }
   };
 
@@ -197,11 +209,10 @@ const MaterialDetail = () => {
       });
       setNewListName('');
       setIsCreateListModalOpen(false);
-      const res = await api.get('/api/lists/get-my-list');
-      const filteredLists = (res.data.lists || []).filter(
-        (list) => list.list_name.toLowerCase() !== 'later'
-      );
-      setLists(filteredLists);
+      
+      // Cập nhật danh sách với trạng thái mới
+      const res = await getMyListWithStatus(materialId);
+      setLists(res.lists || []);
     } catch (err) {
       toast.error(err.response?.data?.message || 'Lỗi khi tạo danh sách!', {
         position: 'top-right',
@@ -403,7 +414,7 @@ const MaterialDetail = () => {
               isLiked={isLiked}
               lists={lists}
               onCreateList={() => setIsCreateListModalOpen(true)}
-              onSaveToList={handleSaveToList}
+              onSaveToList={handleToggleSaveToList}
             />
           </div>
 

@@ -104,7 +104,7 @@ const SearchResultsPage = () => {
     <div className="min-h-screen bg-gray-50">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
         <h2 className="text-3xl font-extrabold text-gray-900 mb-8">
-          Search Results for "{query}"
+          Kết quả cho "{query}"
         </h2>
 
         {/* Filter Section */}
@@ -114,7 +114,7 @@ const SearchResultsPage = () => {
             className="flex items-center gap-2 px-4 py-2 bg-white rounded-lg shadow-md hover:bg-indigo-50 transition-colors duration-200"
           >
             <FaFilter className="text-gray-600" />
-            <span className="text-gray-700 font-medium">Filter</span>
+            <span className="text-gray-700 font-medium">Lộc</span>
           </button>
         </div>
 
@@ -124,7 +124,7 @@ const SearchResultsPage = () => {
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Start Date
+                  Ngày bắt đầu
                 </label>
                 <input
                   type="date"
@@ -136,7 +136,7 @@ const SearchResultsPage = () => {
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
-                  End Date
+                  Ngày kết thúc
                 </label>
                 <input
                   type="date"
@@ -148,14 +148,14 @@ const SearchResultsPage = () => {
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
-                  File Type
+                  Loại tệp
                 </label>
                 <select
                   value={fileType}
                   onChange={handleFileTypeChange}
                   className="w-full px-4 py-2 bg-white rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-indigo-600"
                 >
-                  <option value="">All Types</option>
+                  <option value="">Tất cả</option>
                   <option value={FileType.PDF}>PDF</option>
                   <option value={FileType.DOC}>DOC</option>
                   <option value={FileType.PPT}>PPT</option>
@@ -166,7 +166,7 @@ const SearchResultsPage = () => {
                   onClick={clearFilters}
                   className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors duration-200"
                 >
-                  Clear Filters
+                  Xóa bộ lộc
                 </button>
               </div>
             </div>

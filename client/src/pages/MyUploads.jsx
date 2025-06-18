@@ -90,15 +90,15 @@ const MyUploads = () => {
       <div className="flex-grow">
         <div className="container mx-auto px-4 py-8">
           <div className="flex justify-between items-center mb-8">
-            <h1 className="text-3xl font-bold">My Uploaded Materials</h1>
+            <h1 className="text-3xl font-bold">Tài liệu của tôi</h1>
             <div className="flex items-center space-x-4">
-              <span className="text-gray-600">Total: {materials.length} materials</span>
+              <span className="text-gray-600">Tổng: {materials.length} tài liệu</span>
             </div>
           </div>
           
           {!materials || materials.length === 0 ? (
             <div className="text-center py-8">
-              <p className="text-gray-500">You haven't uploaded any materials yet.</p>
+              <p className="text-gray-500">Bạn chưa đăng tải tài liệu nào.</p>
             </div>
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">

@@ -121,7 +121,7 @@ const MyUploadCard = ({ material, onEdit, onDelete, onVisibilityToggle }) => {
               </span>
               <span>{getFileType()}</span>
             </div>
-            <span>{getPageCount()} pages</span>
+            <span>{getPageCount()} trang</span>
           </div>
 
           {/* Tags */}
