@@ -92,7 +92,7 @@ const ListDetail = () => {
   };
 
   // Kiểm tra nếu danh sách có tên là "Later" (không phân biệt hoa thường)
-  const isLaterList = list && list.name.toLowerCase() === 'Xem sau';
+  const isLaterList = list && list.name.toLowerCase() === 'xem sau';
 
   if (isLoading) {
     return (
