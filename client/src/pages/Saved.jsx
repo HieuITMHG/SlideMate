@@ -9,6 +9,7 @@ const Saved = () => {
   const [isPopupOpen, setIsPopupOpen] = useState(false);
   const [newListName, setNewListName] = useState('');
   const [lists, setLists] = useState([]);
+  const [errorMessage, setErrorMessage] = useState('');
 
   // Fetch lists on component mount
   useEffect(() => {
@@ -29,9 +30,14 @@ const Saved = () => {
         const response = await api.post('/api/lists', { list_name: newListName });
         setLists([...lists, response.data.data]);
         setNewListName('');
+        setErrorMessage('');
         setIsPopupOpen(false);
       } catch (error) {
-        console.error('Error creating list:', error);
+        if (error.response && error.response.status === 400) {
+          setErrorMessage('Tên danh sách đã tồn tại. Vui lòng chọn tên khác.');
+        } else {
+          setErrorMessage('Đã xảy ra lỗi khi tạo danh sách.');
+        }
       }
     }
   };
@@ -42,7 +48,11 @@ const Saved = () => {
         <div className="flex justify-between items-center mb-8">
           <h1 className="text-3xl font-bold text-gray-900">Danh sách của tôi</h1>
           <button
-            onClick={() => setIsPopupOpen(true)}
+            onClick={() => {
+              setIsPopupOpen(true);
+              setNewListName('');
+              setErrorMessage('');
+            }}
             className="flex items-center gap-2 bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition duration-300"
           >
             <FaPlus className="h-5 w-5" />
@@ -52,7 +62,7 @@ const Saved = () => {
 
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
           {lists.map((list) => (
-            <List key={list.id} list={list} />
+            <List key={list.id} list={{ ...list, list_name: list.name === 'Later' ? 'Xem sau' : list.name }} />
           ))}
         </div>
       </div>
@@ -66,11 +76,17 @@ const Saved = () => {
               value={newListName}
               onChange={(e) => setNewListName(e.target.value)}
               placeholder="Nhập tên danh sách"
-              className="w-full border border-gray-300 rounded-lg px-4 py-2 mb-4 focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="w-full border border-gray-300 rounded-lg px-4 py-2 mb-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
             />
+            {errorMessage && (
+              <p className="text-sm text-red-600 mb-2">{errorMessage}</p>
+            )}
             <div className="flex justify-end gap-2">
               <button
-                onClick={() => setIsPopupOpen(false)}
+                onClick={() => {
+                  setIsPopupOpen(false);
+                  setErrorMessage('');
+                }}
                 className="px-4 py-2 text-gray-600 hover:text-gray-800"
               >
                 Hủy

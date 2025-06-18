@@ -145,7 +145,7 @@ const googleLogin = async (req, res) => {
     setTokensCookie(res, accessToken, refreshToken);
 
     res.status(200).json({
-      user: { email, name: account.username },
+      user: { email: account.email , username: account.username, role_id: account.role },
       accessToken,
     });
   } catch (error) {

@@ -341,21 +341,34 @@ const getUserLists = async (req, res) => {
     // 4. For each list, count active materials and get the first active material's thumbnail
     const listsWithDetails = await Promise.all(
       lists.map(async (list) => {
-        // Count only active materials in the list
         const materialCount = await ListMaterial.aggregate([
-          { $match: { list_id: new mongoose.Types.ObjectId(list._id) } },
-          {
-            $lookup: {
-              from: 'materials',
-              localField: 'material_id',
-              foreignField: '_id',
-              as: 'material',
-            },
+        {
+          $match: {
+            list_id: new mongoose.Types.ObjectId(list._id),
           },
-          { $unwind: '$material' },
-          { $match: { 'material.is_active': true } },
-          { $count: 'count' },
-        ]);
+        },
+        {
+          $lookup: {
+            from: 'materials',
+            localField: 'material_id',
+            foreignField: '_id',
+            as: 'material',
+          },
+        },
+        { $unwind: '$material' },
+        {
+          $match: {
+            'material.is_active': true,
+            $or: [
+              { 'material.user_id': new mongoose.Types.ObjectId(user._id) }, 
+              { 'material.visibility': 'PUBLIC' },                              
+            ],
+          },
+        },
+        {
+          $count: 'count',
+        },
+      ]);
 
         const count = materialCount[0]?.count || 0;
 
@@ -398,15 +411,26 @@ const getUserLists = async (req, res) => {
 const createList = async (req, res) => {
   try {
     const user = await User.findOne({ account: new mongoose.Types.ObjectId(req.user.id) });
-    if (!user) return res.status(404).json({ message: 'User not found' });
+    if (!user) return res.status(404).json({ message: 'Không tìm thấy người dùng' });
 
     const { list_name } = req.body;
+
+    const existingList = await List.findOne({ list_name, user_id: user._id });
+    if (existingList) {
+      return res.status(400).json({ message: 'Bạn đã có danh sách với tên này rồi' });
+    }
+
     const list = await List.create({ list_name, user_id: user._id });
-    res.status(201).json({ success: true, data: { id: list._id, name: list.list_name, items: 0, image: null } });
+
+    res.status(201).json({
+      success: true,
+      data: { id: list._id, name: list.list_name, items: 0, image: null },
+    });
   } catch (error) {
     res.status(500).json({ message: 'Server error', error: error.message });
   }
 };
+
 
 const getListMaterials = async (req, res) => {
   try {
@@ -418,14 +442,20 @@ const getListMaterials = async (req, res) => {
     if (!list) return res.status(404).json({ message: 'List not found' });
 
     const listMaterials = await ListMaterial.find({ list_id: listId }).populate({
-      path: 'material_id',
-      match: { is_active: true }, // Chỉ populate Material có is_active: true
-      populate: [
-        { path: 'user_id', populate: { path: 'account' } },
-        { path: 'category_id' },
-        { path: 'file_type_id' },
-      ],
-    });
+    path: 'material_id',
+    match: {
+      is_active: true,
+      $or: [
+        { visibility: 'PUBLIC' },
+        { visibility: 'PRIVATE', user_id: user._id } 
+      ]
+    },
+    populate: [
+      { path: 'user_id', populate: { path: 'account' } },
+      { path: 'category_id' },
+      { path: 'file_type_id' },
+    ],
+  });
 
     // Lấy tất cả List của user để tìm ListMaterial tương ứng
     const userLists = await List.find({ user_id: user._id }).select('_id');
@@ -474,6 +504,8 @@ const getListMaterials = async (req, res) => {
           };
         })
     );
+
+    console.log(formattedMaterials.length);
 
     res.status(200).json({ success: true, data: formattedMaterials });
   } catch (error) {

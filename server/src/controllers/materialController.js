@@ -17,6 +17,7 @@ const Report = require("../models/Report");
 const Like = require("../models/Like");
 const Tag = require("../models/Tag");
 const MaterialTag = require("../models/MaterialTag");
+const globalVar = require("../enums/global");
 
 const storage = multer.memoryStorage();
 const upload = multer({
@@ -91,7 +92,7 @@ const uploadMaterial = [
     try {
       const accountId = new mongoose.Types.ObjectId(req.user.id);
       const user = await User.findOne({ account: accountId });
-      if (!user) return res.status(404).json({ message: 'User not found' });
+      if (!user) return res.status(404).json({ message: 'Không tìm thấy người dùng' });
       const userId = user._id;
 
       const mimeType = file.mimetype;
@@ -218,7 +219,7 @@ const getMaterial = async (req, res) => {
       const user = await User.findOne({ account: accountId });
       if (user) {
         // Kiểm tra trạng thái lưu
-        const laterList = await List.findOne({ user_id: user._id });
+        const laterList = await List.findOne({ user_id: user._id, list_name: globalVar.DEFAULT_LIST_NAME });
         if (laterList) {
           const savedMaterial = await ListMaterial.findOne({
             list_id: laterList._id,
@@ -321,7 +322,7 @@ const getMaterialsByCategory = async (req, res) => {
       const user = await User.findOne({ account: accountId });
       if (user) {
         // Lấy danh sách material đã lưu
-        const laterList = await List.findOne({ user_id: user._id });
+        const laterList = await List.findOne({ user_id: user._id, list_name: globalVar.DEFAULT_LIST_NAME });
         let savedMaterialIds = [];
         if (laterList) {
           const savedMaterials = await ListMaterial.find({ list_id: laterList._id }).select('material_id');
@@ -408,7 +409,7 @@ const report = async (req, res) => {
         },
       })
     ) {
-      return res.status(400).json({ message: 'Hôm nay bạn đã report bài này rồi' });
+      return res.status(400).json({ message: 'Hôm nay bạn đã báo cáo bài này rồi' });
     }
 
     // Đếm số báo cáo của user cho material_id trong ngày hiện tại
@@ -464,7 +465,7 @@ const toggleLike = async (req, res) => {
     const accountId = new mongoose.Types.ObjectId(req.user.id);
     const user = await User.findOne({ account: accountId });
     if (!user) {
-      return res.status(404).json({ message: 'User not found' });
+      return res.status(404).json({ message: 'Không tìm thấy người dùng' });
     }
     const userId = user._id;
 
@@ -555,7 +556,7 @@ const searchMaterialsByTitle = async (req, res) => {
           const user = await User.findOne({ account: accountId });
           if (user) {
             // Check save status
-            const laterList = await List.findOne({ user_id: user._id });
+            const laterList = await List.findOne({ user_id: user._id, list_name: globalVar.DEFAULT_LIST_NAME });
             if (laterList) {
               const savedMaterial = await ListMaterial.findOne({
                 list_id: laterList._id,
@@ -691,7 +692,7 @@ const getRelatedMaterials = async (req, res) => {
       const user = await User.findOne({ account: accountId });
 
       if (user) {
-        const laterList = await List.findOne({ user_id: user._id });
+        const laterList = await List.findOne({ user_id: user._id, list_name: globalVar.DEFAULT_LIST_NAME });
         if (laterList) {
           const savedMaterials = await ListMaterial.find({ list_id: laterList._id }).select('material_id');
           savedMaterialIds = savedMaterials.map((lm) => lm.material_id.toString());
@@ -771,7 +772,7 @@ const getTopViewedMaterialsByCategory = async (req, res) => {
       const accountId = new mongoose.Types.ObjectId(req.user.id);
       const user = await User.findOne({ account: accountId });
       if (user) {
-        const laterList = await List.findOne({ user_id: user._id });
+        const laterList = await List.findOne({ user_id: user._id, list_name: globalVar.DEFAULT_LIST_NAME });
         if (laterList) {
           const savedMaterials = await ListMaterial.find({ list_id: laterList._id }).select('material_id');
           savedMaterialIds = savedMaterials.map((lm) => lm.material_id.toString());
@@ -839,7 +840,7 @@ const getUserUploadedMaterials = async (req, res) => {
     const accountId = new mongoose.Types.ObjectId(req.user.id);
     const user = await User.findOne({ account: accountId });
     if (!user) {
-      return res.status(404).json({ message: 'User not found' });
+      return res.status(404).json({ message: 'Không tìm thấy người dùng' });
     }
 
     const materials = await Material.find({ 
@@ -905,7 +906,7 @@ const deleteMaterial = async (req, res) => {
     if (!user) {
       await session.abortTransaction();
       session.endSession();
-      return res.status(404).json({ message: 'User not found' });
+      return res.status(404).json({ message: 'Không tìm thấy người dùng' });
     }
 
     const material = await Material.findOne({ 
@@ -960,7 +961,7 @@ const updateMaterial = async (req, res) => {
     const user = await User.findOne({ account: accountId });
     
     if (!user) {
-      return res.status(404).json({ message: 'User not found' });
+      return res.status(404).json({ message: 'Không tìm thấy người dùng' });
     }
 
     const material = await Material.findOne({ 
@@ -1023,7 +1024,7 @@ const toggleMaterialVisibility = async (req, res) => {
     const user = await User.findOne({ account: accountId });
     
     if (!user) {
-      return res.status(404).json({ message: 'User not found' });
+      return res.status(404).json({ message: 'Không tìm thấy người dùng' });
     }
 
     const material = await Material.findOne({ 
@@ -1032,7 +1033,7 @@ const toggleMaterialVisibility = async (req, res) => {
     });
 
     if (!material) {
-      return res.status(404).json({ message: 'Material not found or you do not have permission to modify it' });
+      return res.status(404).json({ message: 'Tài liệu không được tìm thấy' });
     }
 
     // Toggle visibility
@@ -1040,7 +1041,7 @@ const toggleMaterialVisibility = async (req, res) => {
     await material.save();
 
     res.json({ 
-      message: 'Visibility updated successfully',
+      message: 'Khả năng hiện thị',
       visibility: material.visibility
     });
   } catch (error) {
@@ -1052,13 +1053,11 @@ const toggleMaterialVisibility = async (req, res) => {
 // Get all materials uploaded by a specific user
 const getUserMaterials = async (req, res) => {
   try {
-    console.log('getUserMaterials called with userId:', req.params.userId);
     
     const userId = req.params.userId;
     const user = await User.findById(userId);
     if (!user) {
-      console.log('User not found:', userId);
-      return res.status(404).json({ message: 'User not found' });
+      return res.status(404).json({ message: 'Không tìm thấy người dùng' });
     }
 
     console.log('Found user:', user.username);
@@ -1068,21 +1067,14 @@ const getUserMaterials = async (req, res) => {
       .populate('user_id', 'username')
       .lean();
 
-    console.log('Found materials:', materials.length);
-
     // Get tags for each material
     const materialsWithTags = await Promise.all(materials.map(async (material) => {
-      console.log('Processing material:', material._id);
       
       const materialTags = await MaterialTag.find({ material_id: material._id })
         .populate('tag_id', 'name')
         .lean();
-      
-      console.log('Found material tags:', materialTags.length, 'for material:', material._id);
-      console.log('Material tags details:', JSON.stringify(materialTags, null, 2));
 
       const tags = materialTags.map(mt => mt.tag_id.name);
-      console.log('Extracted tag names:', tags);
 
       return {
         ...material,
@@ -1090,7 +1082,6 @@ const getUserMaterials = async (req, res) => {
       };
     }));
 
-    console.log('Final materials with tags:', JSON.stringify(materialsWithTags, null, 2));
     res.json(materialsWithTags);
   } catch (error) {
     console.error('Error in getUserMaterials:', error);

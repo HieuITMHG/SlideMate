@@ -132,7 +132,7 @@ const MaterialCard = ({ material }) => {
         <p>{material.user.username}</p>
       </Link>
       <p className="text-gray-600 text-sm">
-        {material.total_pages} slides · {formatViews(material.total_views)} views
+        {material.total_pages} trang · {formatViews(material.total_views)} lượt xem
       </p>
     </div>
   );

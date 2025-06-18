@@ -1,1 +1,1 @@
-export const DEFAULT_LIST_NAME = "Later";
+export const DEFAULT_LIST_NAME = "Xem sau";
