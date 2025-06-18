@@ -6,6 +6,9 @@ const AdminController = require("../controllers/adminController");
 // check auth
 router.get('/check-auth', auth, requireAdmin, AdminController.checkAuth);
 
+// dashboard overview
+router.get("/overview", auth, requireAdmin, AdminController.getOverviewData);
+
 // users managegents
 router.get('/users', auth, requireAdmin, AdminController.getAllUsers);
 router.post('/users/:id/deactivate', auth, requireAdmin, AdminController.deactivateUser);

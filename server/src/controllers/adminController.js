@@ -152,6 +152,15 @@ class AdminController {
     /*----------------------------------------------------
                     STATISTICS
     -----------------------------------------------------*/
+    static async getOverviewData(req, res){
+        try {
+            const data = await AdminService.selectOveriewData();
+            res.json({ message: "ok", data: data });
+        } catch (error) {
+            console.error("error:", error);
+            res.status(500).json({ message: error.message });
+        }
+    }
     static async getStatisticsData(req, res) {
         try {
             const data = await AdminService.selectStatisticsData();

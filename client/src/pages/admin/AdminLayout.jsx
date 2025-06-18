@@ -11,6 +11,7 @@ const AdminLayout = ()=>{
     const navigate = useNavigate();
 
     useEffect(()=>{
+        document.title = "Admin";
         const checkAuth = async ()=>{
             setIsLoading(true);
             try {
