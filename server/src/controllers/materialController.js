@@ -525,7 +525,7 @@ const searchMaterialsByTitle = async (req, res) => {
     // Create case-insensitive regex for title search
     const regex = new RegExp(query.trim(), 'i'); // 'i' for case-insensitive
     // Find materials matching the title
-    const materials = await Material.find({ title: regex, is_active: true }).populate({
+    const materials = await Material.find({ title: regex, is_active: true, visibility: 'PUBLIC' }).populate({
       path: 'user_id',
       populate: {
         path: 'account',
