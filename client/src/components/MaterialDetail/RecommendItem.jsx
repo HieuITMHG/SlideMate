@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { FileType } from '../../enums';
 import { FaBookmark } from 'react-icons/fa';
-import { toggleSaveMaterial } from '../../apis/materialApis';
+import { toggleSaveLater } from '../../apis/materialApis';
 import { toast } from 'react-toastify';
 
 const RecommendItem = ({ material }) => {
@@ -13,7 +13,7 @@ const RecommendItem = ({ material }) => {
     setIsSaved(!isSaved);
 
     try {
-      const response = await toggleSaveMaterial(material.id);
+      const response = await toggleSaveLater(material.id);
       setIsSaved(response.saved);
       toast.success(response.message, {
         position: 'top-right',

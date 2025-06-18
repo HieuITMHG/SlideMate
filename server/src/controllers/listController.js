@@ -1,11 +1,12 @@
 const List = require('../models/List');
 const ListMaterial = require('../models/ListMaterial');
 const User = require('../models/User');
+const Material = require('../models/Material');
 const globalVar = require("../enums/global");
 const Like = require('../models/Like');
 const mongoose = require("mongoose");
 
-const toggleSaveMaterial = async (req, res) => {
+const toggleSaveLater = async (req, res) => {
   try {
     const { material_id } = req.body;
     const account_id = req.user.id;
@@ -17,9 +18,9 @@ const toggleSaveMaterial = async (req, res) => {
     }
 
     // Find or create a default list for the user
-    let userList = await List.findOne({ user_id: user._id });
+    let userList = await List.findOne({ user_id: user._id, list_name: globalVar.DEFAULT_LIST_NAME });
     if (!userList) {
-        await new List({
+        userList = await new List({
             list_name: globalVar.DEFAULT_LIST_NAME,
             user_id: user._id,
             description: null
@@ -50,7 +51,60 @@ const toggleSaveMaterial = async (req, res) => {
       });
     }
   } catch (error) {
-    console.error('Error in toggleSaveMaterial:', error);
+    console.error('Error in toggleSaveLater:', error);
+    return res.status(500).json({
+      message: 'Server error',
+      error: error.message
+    });
+  }
+};
+
+const toggleSaveList = async (req, res) => {
+  try {
+    const { material_id, list_id } = req.body;
+    const account_id = req.user.id;
+
+    // Find user by account ID
+    const user = await User.findOne({ account: account_id });
+    if (!user) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+
+    // Find the list
+    let userList = await List.findOne({ _id: list_id, user_id: user._id });
+
+    if (!userList) {
+        return res.status(404).json({
+          message: 'List không được tìm thấy',
+          saved: false
+        })
+    }
+
+    const existingListMaterial = await ListMaterial.findOne({
+      material_id,
+      list_id: userList._id
+    });
+
+    if (existingListMaterial) {
+      // If exists, remove it (unsave)
+      await ListMaterial.deleteOne({ _id: existingListMaterial._id });
+      return res.status(200).json({
+        message: 'Đã bỏ tài liệu khỏi danh sách',
+        saved: false
+      });
+    } else {
+      // If not exists, add it (save)
+      await new ListMaterial({
+        material_id: material_id,
+        list_id: userList._id
+      }).save();
+      return res.status(200).json({
+        message: 'Đã thêm tài liệu vào danh sách',
+        saved: true
+      });
+    }
+  } catch (error) {
+    console.error('Error in toggleSaveList:', error);
     return res.status(500).json({
       message: 'Server error',
       error: error.message
@@ -341,8 +395,6 @@ const getUserLists = async (req, res) => {
   }
 };
 
-module.exports = getUserLists;
-
 const createList = async (req, res) => {
   try {
     const user = await User.findOne({ account: new mongoose.Types.ObjectId(req.user.id) });
@@ -508,8 +560,59 @@ const updateListName = async (req, res) => {
   }
 };
 
+const getMyListWithMaterialStatus = async (req, res) => {
+  if (!req.user.id) {
+    return res.status(401).json({ message: 'User not authenticated' });
+  }
+
+  try {
+    const { material_id } = req.params;
+    
+    // Lấy user_id từ User dựa trên account ID
+    const accountId = new mongoose.Types.ObjectId(req.user.id);
+    const user = await User.findOne({ account: accountId });
+    if (!user) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+    const userId = user._id;
+
+    // Lấy tất cả danh sách của user (trừ list "later")
+    const lists = await List.find({ 
+      user_id: userId,
+      list_name: { $ne: globalVar.DEFAULT_LIST_NAME }
+    }).select('list_name description createdAt updatedAt');
+
+    // Lấy trạng thái material trong từng list
+    const listsWithStatus = await Promise.all(
+      lists.map(async (list) => {
+        const existingListMaterial = await ListMaterial.findOne({
+          material_id: material_id,
+          list_id: list._id
+        });
+
+        return {
+          id: list._id,
+          list_name: list.list_name,
+          description: list.description || '',
+          created_at: list.createdAt,
+          updated_at: list.updatedAt,
+          is_saved: !!existingListMaterial
+        };
+      })
+    );
+
+    res.json({ lists: listsWithStatus });
+  } catch (error) {
+    console.error('Error fetching user lists with material status:', error.stack);
+    res.status(500).json({
+      message: 'Failed to fetch user lists',
+      error: error.message,
+    });
+  }
+};
+
 module.exports = {
-    toggleSaveMaterial,
+    toggleSaveLater,
     getMyList,
     getMyListDetail,
     createListAndAddMaterial,
@@ -518,5 +621,7 @@ module.exports = {
     getListMaterials,
     getList,
     deleteList,
-    updateListName
+    updateListName,
+    toggleSaveList,
+    getMyListWithMaterialStatus
 };

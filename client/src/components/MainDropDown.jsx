@@ -75,7 +75,7 @@ const MainDropDown = () => {
         >
           <div className="p-4 border-b border-gray-200 bg-gray-50">
             <p className="text-sm font-semibold text-gray-800 truncate">
-              Hello, {user?.name || "User"}
+              Hello, {user?.username || "User"}
             </p>
           </div>
           <ul className="py-2">

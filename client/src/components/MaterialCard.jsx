@@ -2,7 +2,7 @@ import { Link } from "react-router-dom";
 import { FileType } from "../enums";
 import { FaHeart, FaBookmark } from "react-icons/fa";
 import { useState } from "react";
-import { toggleSaveMaterial } from "../apis/materialApis";
+import { toggleSaveLater } from "../apis/materialApis";
 import api from "../utils/api"; // Import api for toggleLike
 import { toast } from "react-toastify";
 
@@ -15,7 +15,7 @@ const MaterialCard = ({ material }) => {
     setIsSaved(!isSaved); // Optimistic update
 
     try {
-      const response = await toggleSaveMaterial(material.id);
+      const response = await toggleSaveLater(material.id);
       setIsSaved(response.saved);
       toast.success(response.message, {
         position: "top-right",

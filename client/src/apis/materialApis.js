@@ -31,12 +31,32 @@ const getRelatedMaterials = async (material_id) => {
     }
 };
 
-const toggleSaveMaterial = async (materialId) => {
+const toggleSaveLater = async (materialId) => {
   try {
-    const res = await api.post("/api/lists/toggle-save", { material_id: materialId });
+    const res = await api.post("/api/lists/toggle-save-later", { material_id: materialId });
     return res.data;
   } catch (error) {
     console.error("Error toggling save material:", error);
+    throw error;
+  }
+};
+
+const toggleSaveList = async (materialId, listId) => {
+  try {
+    const res = await api.post("/api/lists/toggle-save-list", { material_id: materialId, list_id: listId });
+    return res.data;
+  } catch (error) {
+    console.error("Error toggling save material:", error);
+    throw error;
+  }
+};
+
+const getMyListWithStatus = async (materialId) => {
+  try {
+    const res = await api.get(`/api/lists/get-my-list-with-status/${materialId}`);
+    return res.data;
+  } catch (error) {
+    console.error("Error getting lists with status:", error);
     throw error;
   }
 };
@@ -92,4 +112,4 @@ export const toggleMaterialVisibility = async (materialId) => {
   }
 };
 
-export { getMaterialsByCategory, toggleSaveMaterial, getRelatedMaterials, getTopMaterialsByCategory };
+export { getMaterialsByCategory, toggleSaveLater, getRelatedMaterials, getTopMaterialsByCategory, toggleSaveList, getMyListWithStatus };
