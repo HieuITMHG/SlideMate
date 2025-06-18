@@ -92,7 +92,7 @@ const ListDetail = () => {
   };
 
   // Kiểm tra nếu danh sách có tên là "Later" (không phân biệt hoa thường)
-  const isLaterList = list && list.name.toLowerCase() === 'later';
+  const isLaterList = list && list.name.toLowerCase() === 'Xem sau';
 
   if (isLoading) {
     return (
@@ -115,7 +115,7 @@ const ListDetail = () => {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center mb-8">
           <div className="flex items-center gap-4">
-            <h1 className="text-3xl font-bold text-gray-900">{list.name == 'Later'? 'Xem sau': list.name}</h1>
+            <h1 className="text-3xl font-bold text-gray-900">{list.name}</h1>
             {/* Chỉ hiển thị nút ba chấm nếu không phải danh sách "Later" */}
             {!isLaterList && (
               <Menu as="div" className="relative inline-block text-left">
