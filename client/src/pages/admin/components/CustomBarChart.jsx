@@ -18,7 +18,8 @@ const CustomBarChart = ({
   dataKeyLabel = "label",
   dataKeyValue = "value",
   tick = true,
-  tooltip = null
+  tooltip = null,
+  onClick = ()=>{}
 }) => {
   return (
     <ResponsiveContainer width={width} height={height}>
@@ -28,7 +29,7 @@ const CustomBarChart = ({
         <YAxis />
         {tooltip != null ? <Tooltip content={tooltip} /> : <Tooltip />}
         <Legend />
-        <Bar dataKey={dataKeyValue} fill={color} />
+        <Bar dataKey={dataKeyValue} fill={color} onClick={onClick}/>
       </BarChart>
     </ResponsiveContainer>
   );

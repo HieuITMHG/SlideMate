@@ -30,30 +30,30 @@ class AdminService {
         return admin;
     }
 
-    static async deleteMaterial({material_id}){
+    static async deleteMaterial({ material_id }) {
         // check
-        const material = await Material.findOne({_id: material_id});
-        if (! material)
+        const material = await Material.findOne({ _id: material_id });
+        if (!material)
             throw new Error("material id không tồn tại!");
 
         // delete List-Material
         await ListMaterial.deleteMany(
-            {material_id: material_id}
+            { material_id: material_id }
         );
-        
+
         // delete Like
         await Like.deleteMany(
-            {material_id:material_id}
+            { material_id: material_id }
         );
 
         // delete Material-Tag
         await MaterialTag.deleteMany(
-            {material_id: material_id}
+            { material_id: material_id }
         );
 
         // delete Material 
         await Material.deleteOne(
-            {_id:material_id}
+            { _id: material_id }
         );
     }
 
@@ -197,8 +197,25 @@ class AdminService {
     }
 
     static async selectAllHandledReports() {
-        const selectAll = await Report.find({ status: "HANDLED" });
-        return selectAll;
+        const selectAll = await Report
+            .find({ status: "HANDLED" })
+            .populate({ path: "material_id", populate: { path: "user_id" } })
+            ;
+        const reportMapped = selectAll.map((r) => (
+            {
+                report_id: r._id,
+                material_id: r?.material_id?._id || null,
+                material_title: r?.material_id?.title || null,
+                material_owner_id: r?.material_id?.user_id?._id || null,
+                report_content: r.report_content,
+                admin_id: r.admin_id,
+                is_delete_material: r.is_delete_material,
+                is_ban_account: r.is_ban_account,
+                report_at: r.createdAt,
+                handle_at: r.updatedAt
+            }
+        ));
+        return reportMapped;
     }
 
     static async handleAllReportsOfMaterial({ material_id, admin_id, material_owner_id, is_delete_material, is_deactivate_account }) {
@@ -209,7 +226,7 @@ class AdminService {
         }
 
         if (is_delete_material) {
-            await AdminService.deleteMaterial({material_id:material_id});
+            await AdminService.deleteMaterial({ material_id: material_id });
         }
 
         await Report.updateMany(
@@ -232,19 +249,77 @@ class AdminService {
     --------------------------------------------------
     */
 
+    static async selectOveriewData() {
+        // this month
+        const now = new Date();
+        const thisMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+
+        // user
+        const usersNotFiltered = await User.find().populate({ path: 'account' });
+        const users = usersNotFiltered.filter((u)=>(u.account));
+        
+        // material & categories & report
+        const publicMaterialsNotFiltered = await Material
+            .find({ is_active: true, visibility: "PUBLIC" })
+            .populate("user_id")
+            .populate("category_id")
+            .populate("file_type_id");
+        const publicMaterials = publicMaterialsNotFiltered.filter((m) => (m.user_id && m.category_id && m.file_type_id));
+        const categories = await Category.find();
+        const reports = await AdminService.selectAllPendingReportsGroupByMaterial();
+        
+
+        const thisMonthMaterialCount = publicMaterials.filter((m) => (new Date(m.createdAt) > thisMonth)).length;
+        const numOfUsers = users.length;
+        const numOfActiveUsers = users.filter((u) => (u.account.is_active)).length;
+        const numOfNewUsers = users.filter((u) => (new Date(u.account.createdAt) >= thisMonth)).length;
+        return [
+
+            {
+                name: "Tổng số người dùng",
+                value: numOfUsers
+            },
+            {
+                name: "Số người dùng bị khóa tài khoản",
+                value: numOfUsers - numOfActiveUsers
+            },
+            {
+                name: "Số người dùng đăng ký mới trong tháng này",
+                value: numOfNewUsers
+            },
+            {
+                name: "Số tài liệu trên hệ thống(public)",
+                value: publicMaterials.length
+            },
+
+            {
+                name: "Số tài liệu được tải lên trong tháng này(public)",
+                value: thisMonthMaterialCount
+            },
+            {
+                name: "Số danh mục tài liệu",
+                value: categories.length
+            },
+            {
+                name: "Số tố cáo cần giaỉ quyết",
+                value: reports.length
+            },
+        ]
+    }
+
     static async selectStatisticsData() {
         const allMaterials = await Material
             .find(
                 { is_active: true, visibility: "PUBLIC" }
-                , { 
-                    title: 1, 
-                    description:1,
-                    user_id: 1, 
-                    total_views: 1, 
-                    total_likes: 1, 
-                    createdAt: 1 ,
-                    pdf_version_path:1, 
-                    thumbnail_path:1
+                , {
+                    title: 1,
+                    description: 1,
+                    user_id: 1,
+                    total_views: 1,
+                    total_likes: 1,
+                    createdAt: 1,
+                    pdf_version_path: 1,
+                    thumbnail_path: 1
                 }
             )
             .populate({ path: "category_id", select: "category_name" })
@@ -266,7 +341,7 @@ class AdminService {
                         ? (m.user_id.first_name + m.user_id.last_name)
                         : (m.user_id.account.username ? m.user_id.account.username : ""),
                 total_views: m.total_views,
-                total_likes:m.total_likes,
+                total_likes: m.total_likes,
                 category_name: m.category_id.category_name,
                 file_type: m.file_type_id.type_name,
                 created_at: m.createdAt
@@ -277,26 +352,26 @@ class AdminService {
         const allFileTypes = await FileType.find();
 
         const categories = allCategories.reduce(
-            (cat, element)=>{
+            (cat, element) => {
                 const key = element.category_name;
                 cat[key] = {
-                    name:key,
-                    total_materials:0,
-                    total_views:0,
-                    total_likes:0
+                    name: key,
+                    total_materials: 0,
+                    total_views: 0,
+                    total_likes: 0
                 };
                 return cat;
             }, {}
         );
         // const categories = {};
         const filetypes = allFileTypes.reduce(
-            (type, element)=>{
+            (type, element) => {
                 const key = element.type_name;
                 type[key] = {
                     name: key,
-                    total_materials:0,
-                    total_views:0,
-                    total_likes:0
+                    total_materials: 0,
+                    total_views: 0,
+                    total_likes: 0
                 }
                 return type;
             }, {}
@@ -318,8 +393,8 @@ class AdminService {
         // return materialsFiltered;
         return {
             materials: materialMapped,
-            categories:Object.values(categories),
-            filetypes:Object.values(filetypes)
+            categories: Object.values(categories),
+            filetypes: Object.values(filetypes)
         }
     }
 }

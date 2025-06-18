@@ -85,7 +85,7 @@ const ReportsDetails = ({ data, onAction, onExit }) => {
                                 <div>{`Noi dung: ${r.report_content}`}</div> */}
                                 <div className='italic text-gray-700'>{`Id báo cáo: ${r.report_id}`}</div>
                                 <div className='italic text-gray-700'>{`Người dùng ${r.reporter_id} đã báo cáo tài liệu này`}</div>
-                                <div className='italic text-gray-700'>{`Vào lúc: ${r.report_at}`}</div>
+                                <div className='italic text-gray-700'>{`Vào lúc: ${new Date(r.report_at).toLocaleString('vi-VN')}`}</div>
                                 <div className='font-bold text-gray-700'>Nội dung:</div>
                                 <div className=''>{`"${r.report_content}"`}</div>
                             </div>
